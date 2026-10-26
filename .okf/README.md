@@ -39,6 +39,21 @@ Use `.okf/templates/spec.md` for features and `.okf/templates/task.md` for a
 single bounded implementation task. Specs should be concise enough to review
 and detailed enough that acceptance does not depend on guesswork.
 
+### Spec quality check
+
+- Is the user problem distinct from the proposed technical solution?
+- Does each acceptance criterion describe observable behavior?
+- Are authorization, validation, time boundaries, conflicts, and error outcomes
+  stated where relevant?
+- Are database integrity and migration requirements explicit?
+- Are assumptions and unresolved decisions labeled rather than silently settled?
+- Can a reviewer tell what is intentionally excluded?
+- Does the spec avoid requiring the optional React demo for backend correctness?
+
+For broad requests or spec work, use `.codex/skills/spec-writer/SKILL.md`.
+Other repository skills live under `.codex/skills/`; use one only when its
+description matches the requested work.
+
 ## Workflow
 
 1. Read the relevant vision, spec, code, standards, and existing tests.
