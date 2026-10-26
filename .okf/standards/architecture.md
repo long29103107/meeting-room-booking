@@ -1,5 +1,23 @@
 # Architecture Standard
 
+## Frontend source layout
+
+Keep the optional React/Vite demo organized by UI responsibility:
+
+```text
+frontend/src/
+  routes/       route definitions, path constants, and navigation guards
+  pages/        screen-level components, one per route
+  components/   reusable layout, forms, lists, dialogs, and feedback UI
+  contexts/     shared authenticated workspace state and actions
+  services/     HTTP/API client code
+  types/        shared API/domain types
+  utils/        small reusable formatting and date helpers
+```
+
+Keep route guards as navigation behavior only; the backend remains the source
+of truth for authentication, authorization, and booking rules.
+
 Use the conventional Spring Boot layered architecture inside one modular
 monolith. This keeps the design familiar and easy to follow without adding
 Clean/Hexagonal Architecture, CQRS, or microservice patterns.

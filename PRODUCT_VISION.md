@@ -93,7 +93,7 @@ Use roles `EMPLOYEE`, `ADMIN` consistently. Avoid exposing password hashes or in
 
 ### Employee reservation flow
 
-1. User authenticates and obtains access token/credentials.
+1. User sends HTTP Basic credentials for a configured demo account.
 2. User lists rooms, optionally filtering by capacity.
 3. User queries availability with `startTime`, `endTime`, and optional `minCapacity`.
 4. User selects room and sends a booking request.
@@ -130,34 +130,32 @@ Use roles `EMPLOYEE`, `ADMIN` consistently. Avoid exposing password hashes or in
 
 ## 6. Data model
 
-### `users`
+### Demo user identities
 
-- `id` UUID primary key
-- `email` VARCHAR unique, not null
-- `password_hash` VARCHAR not null
-- `display_name` VARCHAR not null
-- `role` VARCHAR or enum-compatible string (`EMPLOYEE`, `ADMIN`)
-- `created_at` TIMESTAMPTZ not null
+- Demo users are configured in Spring Security's in-memory user store; there is
+  no `users` table or user persistence in this MVP.
+- Demo passwords are encoded with BCrypt at application startup.
+- Bookings store the authenticated user's email in `user_email` so booking
+  ownership and history remain available without a users-table foreign key.
 
 ### `rooms`
 
-- `id` UUID primary key
-- `name` VARCHAR unique, not null
+- `id` BIGSERIAL primary key
+- `name` VARCHAR(120) unique, not null
 - `capacity` INTEGER not null, > 0
-- `location` VARCHAR nullable
+- `location` VARCHAR(160) not null
 - `active` BOOLEAN not null default true
-- `created_at`, `updated_at` TIMESTAMPTZ
 
 ### `bookings`
 
-- `id` UUID primary key
-- `room_id` UUID not null references rooms
-- `user_id` UUID not null references users
+- `id` BIGSERIAL primary key
+- `room_id` BIGINT not null references rooms
+- `user_email` VARCHAR(200) not null; identifies the in-memory authenticated user
 - `start_time` TIMESTAMPTZ not null
 - `end_time` TIMESTAMPTZ not null
-- `title` VARCHAR not null
-- `status` VARCHAR not null (`CONFIRMED`, `CANCELLED`)
-- `created_at`, `updated_at` TIMESTAMPTZ
+- `title` VARCHAR(200) not null
+- `status` VARCHAR(16) not null (`CONFIRMED`, `CANCELLED`)
+- `created_at` TIMESTAMPTZ not null
 - DB check: `end_time > start_time`
 
 ### Critical invariant: PostgreSQL overlap protection
@@ -186,32 +184,33 @@ Why: A SELECT-before-INSERT check alone is subject to a race. The exclusion cons
 
 ## 7. REST API contract (v1)
 
-Base path: `/api/v1`. Prefer consistent JSON error shape and sensible pagination/filtering.
+Base path: `/api/v1`. The MVP uses stateless HTTP Basic authentication with the
+documented in-memory demo accounts; there is no `/auth/login` endpoint or bearer
+token flow. Prefer consistent JSON error shape and sensible pagination/filtering.
 
 | Method | Endpoint | Access | Purpose |
 | --- | --- | --- | --- |
-| POST | `/auth/login` | Public | Authenticate demo user |
 | GET | `/rooms` | Auth | List active rooms; admin may include inactive |
 | GET | `/rooms/{id}` | Auth | Room details |
 | POST | `/rooms` | ADMIN | Create room |
 | PUT | `/rooms/{id}` | ADMIN | Update room |
-| PATCH | `/rooms/{id}/deactivate` | ADMIN | Soft deactivate room |
+| DELETE | `/rooms/{id}` | ADMIN | Soft deactivate room |
 | GET | `/rooms/available?startTime=...&endTime=...&minCapacity=...` | Auth | Search rooms with no confirmed overlapping bookings |
 | POST | `/bookings` | Auth | Create reservation |
 | GET | `/bookings/me` | Auth | List my reservations |
-| GET | `/bookings` | ADMIN | List bookings, filter by room and time window |
-| GET | `/rooms/{id}/calendar?from=...&to=...` | Auth | Room booking schedule |
+| GET | `/bookings` | ADMIN | List all company bookings |
+| GET | `/bookings/calendar?from=...&to=...` | Auth | Confirmed bookings in a time window |
 | PATCH | `/bookings/{id}/cancel` | Owner/ADMIN | Cancel reservation |
 
 ### Example: create booking
 
 ```http
 POST /api/v1/bookings
-Authorization: Bearer <access-token>
+Authorization: Basic <base64(username:password)>
 Content-Type: application/json
 
 {
-  "roomId": "2e45ee6a-dfde-43cd-bd88-ff873d724da1",
+  "roomId": 1,
   "title": "Sprint planning",
   "startTime": "2026-10-27T09:00:00+07:00",
   "endTime": "2026-10-27T10:00:00+07:00"
@@ -294,7 +293,8 @@ Acceptance:
 
 ## 10. Security MVP
 
-- Passwords are hashed with BCrypt (no plaintext in the database).
+- Demo passwords are encoded with BCrypt and demo identities are stored in
+  Spring Security's in-memory user store; this MVP has no persistent users table.
 - Authenticate using Spring Security; issue short-lived JWT if implementation time permits.
 - Authorize admin-only endpoints at server side and enforce booking ownership checks.
 - Never trust `userId` passed by clients for ownership: derive authenticated user identity from the security context.

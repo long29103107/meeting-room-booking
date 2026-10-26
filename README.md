@@ -22,13 +22,13 @@ Prerequisites: Docker Desktop (Compose v2). From repository root:
 docker compose up --build
 ```
 
-- UI: http://localhost:3000
+- UI: http://localhost:5000
 - API: http://localhost:5001/api/v1/rooms
 - Swagger UI: http://localhost:5001/swagger-ui.html
 - OpenAPI JSON: http://localhost:5001/v3/api-docs
 - Health: http://localhost:5001/actuator/health
 
-No manual database initialization required. Flyway creates tables, constraints and initial demo rooms. If port 3000 or 5001 is busy, change the host-side mapping in `docker-compose.yaml`.
+No manual database initialization required. Flyway creates tables, constraints and initial demo rooms. If port 5000 or 5001 is busy, change the host-side mapping in `docker-compose.yaml`.
 
 Optional: copy the root `.env.example` to `.env` to customize the PostgreSQL credentials used by Docker Compose.
 
@@ -51,13 +51,18 @@ curl -u employee@demo.local:Employee123! 'http://localhost:5001/api/v1/rooms/ava
 ## Architecture
 
 ```text
-React + TypeScript (port 3000) -> nginx reverse proxy /api -> Spring Boot (port 5001)
+React + TypeScript (port 5000) -> nginx reverse proxy /api -> Spring Boot (port 5001)
                                                          -> Spring Data JPA
                                                          -> PostgreSQL 16
                                                          -> Flyway migrations
 ```
 
 The backend uses conventional Spring layers in `controller`, `service`, `repository`, `entity`, and `dto` packages, with `config` and `common` for cross-cutting concerns. Authentication is stateless Spring Security HTTP Basic. The frontend stores demo credentials only in browser session storage for a simple evaluation flow. No frontend business rule is trusted by the server.
+
+The frontend uses React Router with route definitions and guards in
+`frontend/src/routes/`, screen components in `frontend/src/pages/`, reusable UI
+in `frontend/src/components/`, shared workspace state in
+`frontend/src/contexts/`, and API access in `frontend/src/services/`.
 
 ## Business rules (team design decisions)
 
@@ -109,7 +114,10 @@ Create booking JSON:
 
 Errors use one JSON envelope with `timestamp`, `status`, `code`, `message`, and `path`.
 Expected statuses: 400 invalid request/range, 401 unauthenticated, 403 forbidden,
-404 missing resource, and 409 booking/uniqueness conflict or invalid state transition.
+404 missing resource, 405 unsupported method, 406 unavailable response format,
+409 booking/uniqueness conflict or invalid state transition, 415 unsupported
+content type, and 500 unexpected server error. A 500 response uses a generic
+message; diagnostic details are written to backend logs, not returned to clients.
 
 ## Important design decisions and rationale
 
@@ -146,24 +154,25 @@ press **Run** or **Debug**. The app uses the local PostgreSQL settings in
 `meetingroom` database is available on `localhost:5432` first. The same
 configuration works with any `SPRING_DATASOURCE_*` environment overrides.
 
-Frontend (requires Node.js):
+Frontend (requires Bun 1.3.13):
 
 ```bash
 cd frontend
 cp .env.example .env
-npm install
-npm run dev
-npm run build
+bun install --frozen-lockfile
+bun run dev
+bun run build
 ```
 
 Set `VITE_API_BASE_URL` in `frontend/.env` when the API uses a different base URL. The default `/api/v1` goes through the Vite or nginx proxy.
 
 ### One-pass MVP walkthrough
 
-Run `docker compose up --build`, then open http://localhost:3000.
+Run `docker compose up --build`, then open http://localhost:5000.
 
 1. Sign in as `employee@demo.local` / `Employee123!`, search for a future time
-   range, book an available room, open **My bookings**, then cancel it.
+   range, book an available room, open **Room calendar** to inspect confirmed
+   reservations by time and room, then open **My bookings** to cancel your own.
 2. Sign in as `admin@demo.local` / `Admin123!`, add a room, edit it, deactivate
    it, then edit it again and re-enable it. Open **Company bookings** to inspect
    reservations across users.
@@ -184,7 +193,7 @@ mvn test
 The PostgreSQL Testcontainers integration tests require a running Docker daemon.
 They are skipped when Docker is unavailable, so a successful Maven exit alone
 does not verify PostgreSQL migrations or concurrent overlap protection. The
-frontend check is `npm run build` from `frontend/`.
+frontend check is `bun run build` from `frontend/`.
 
 Manual acceptance checks:
 
@@ -196,7 +205,8 @@ Manual acceptance checks:
 - [ ] Canceled booking no longer blocks its original slot.
 - [ ] Calendar and availability return correct results.
 
-The current verification status is recorded in `.okf/phase/001/PHASE_SUMMARY.md`.
+The current final-integration verification status is recorded in
+`.okf/phase/004/PHASE_SUMMARY.md`.
 
 ## Submission
 

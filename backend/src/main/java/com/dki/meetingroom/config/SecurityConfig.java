@@ -1,6 +1,7 @@
 package com.dki.meetingroom.config;
 
 import com.dki.meetingroom.common.ApiError;
+import com.dki.meetingroom.common.ApiErrorCodes;
 import com.dki.meetingroom.common.ApiPaths;
 import com.dki.meetingroom.common.SecurityRoles;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -64,11 +65,11 @@ public class SecurityConfig {
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint((request, response, exception) -> writeSecurityError(
                                 objectMapper, response, request.getRequestURI(),
-                                HttpServletResponse.SC_UNAUTHORIZED, "UNAUTHENTICATED",
+                                HttpServletResponse.SC_UNAUTHORIZED, ApiErrorCodes.UNAUTHENTICATED,
                                 "Authentication is required"))
                         .accessDeniedHandler((request, response, exception) -> writeSecurityError(
                                 objectMapper, response, request.getRequestURI(),
-                                HttpServletResponse.SC_FORBIDDEN, "FORBIDDEN",
+                                HttpServletResponse.SC_FORBIDDEN, ApiErrorCodes.FORBIDDEN,
                                 "You do not have permission to perform this action")))
                 .httpBasic(Customizer.withDefaults())
                 .build();
