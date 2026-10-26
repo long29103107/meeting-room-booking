@@ -42,7 +42,7 @@ A React + Vite + TypeScript UI is included as an optional demonstration of the b
 | Validation | Jakarta Bean Validation |
 | Tests | JUnit 5, Spring Boot Test; Testcontainers PostgreSQL for DB-specific overlap/concurrency tests |
 | Runtime | Dockerfile + Compose; app and PostgreSQL start together |
-| Design | Modular monolith, feature-first package organization |
+| Design | Conventional Spring layered architecture inside a modular monolith |
 
 Spring Initializr metadata:
 
@@ -236,17 +236,26 @@ Suggested HTTP conventions: 400 invalid input, 401 unauthenticated, 403 forbidde
 
 ## 8. Code organization
 
+Use the conventional Spring Boot layered architecture: REST controllers handle
+HTTP, services hold business rules and transactions, Spring Data repositories
+access persistence, entities model database data, and DTOs define API data. Use
+separate `controller`, `service`, `repository`, `entity`, and `dto` packages.
+Keep `common` and `config` for cross-cutting concerns. Do not add Clean
+Architecture, Hexagonal Architecture, CQRS, or microservice-style layers for
+this MVP.
+
 ```text
 src/main/java/com/dki/meetingroom/
 ├── MeetingRoomApplication.java
-├── auth/{controller,service,dto,security}/
-├── user/{entity,repository}/
-├── room/{controller,service,repository,entity,dto}/
-├── booking/{controller,service,repository,entity,dto}/
-├── common/{exception,response}/
+├── controller/{RoomController,BookingController}.java
+├── service/{RoomService,BookingService}.java
+├── repository/{RoomRepository,BookingRepository}.java
+├── entity/{Room,Booking}.java
+├── dto/{room,booking}/
+├── common/
 └── config/
 src/main/resources/
-├── application.yml
+├── application.properties
 └── db/migration/
     ├── V1__init_schema.sql
     └── V2__booking_constraints.sql
@@ -277,7 +286,7 @@ Acceptance:
 - PostgreSQL has a named volume for local persistence, and a healthcheck.
 - Backend waits for a healthy database / retries safely during startup.
 - No external dependencies (such as local PostgreSQL or Java installation) are required for Compose startup beyond Docker.
-- App port `8080`, PostgreSQL internal port `5432`; publishing DB to host is optional.
+- App port `5001`, PostgreSQL internal port `5432`; publishing DB to host is optional.
 - Use environment variables for secrets, database settings and token config; commit `.env.example` only, **never** a real `.env`.
 - Flyway migrations execute on app startup; JPA schema validation passes.
 - Document default demo accounts and secure development-only passwords in README; never ship production secrets as defaults.

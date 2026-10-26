@@ -23,16 +23,20 @@ docker compose up --build
 ```
 
 - UI: http://localhost:3000
-- API: http://localhost:8080/api/rooms
-- Health: http://localhost:8080/actuator/health
+- API: http://localhost:5001/api/v1/rooms
+- Swagger UI: http://localhost:5001/swagger-ui.html
+- OpenAPI JSON: http://localhost:5001/v3/api-docs
+- Health: http://localhost:5001/actuator/health
 
-No manual database initialization required. Flyway creates tables, constraints and initial demo rooms. If port 3000 or 8080 is busy, change the host-side mapping in `compose.yaml`.
+No manual database initialization required. Flyway creates tables, constraints and initial demo rooms. If port 3000 or 5001 is busy, change the host-side mapping in `docker-compose.yaml`.
+
+Optional: copy the root `.env.example` to `.env` to customize the PostgreSQL credentials used by Docker Compose.
 
 ### Demo accounts (local evaluation only)
 
 | Role | Username | Password |
 | --- | --- | --- |
-| USER | `employee@demo.local` | `Employee123!` |
+| EMPLOYEE | `employee@demo.local` | `Employee123!` |
 | ADMIN | `admin@demo.local` | `Admin123!` |
 
 **Security note:** HTTP Basic with in-memory demo accounts is an MVP tradeoff. It is **not suitable for production over plain HTTP**. Production must use HTTPS, an identity provider or persisted user store, rotated secrets and stronger operational controls. No user registration endpoint is included.
@@ -40,20 +44,20 @@ No manual database initialization required. Flyway creates tables, constraints a
 ### API smoke test
 
 ```bash
-curl -u employee@demo.local:Employee123! http://localhost:8080/api/rooms
-curl -u employee@demo.local:Employee123! 'http://localhost:8080/api/rooms/available?start=2027-01-10T09:00:00Z&end=2027-01-10T10:00:00Z'
+curl -u employee@demo.local:Employee123! http://localhost:5001/api/v1/rooms
+curl -u employee@demo.local:Employee123! 'http://localhost:5001/api/v1/rooms/available?startTime=2027-01-10T09:00:00Z&endTime=2027-01-10T10:00:00Z'
 ```
 
 ## Architecture
 
 ```text
-React + TypeScript (port 3000) -> nginx reverse proxy /api -> Spring Boot (port 8080)
+React + TypeScript (port 3000) -> nginx reverse proxy /api -> Spring Boot (port 5001)
                                                          -> Spring Data JPA
                                                          -> PostgreSQL 16
                                                          -> Flyway migrations
 ```
 
-Feature-first modules: `room`, `booking`, `config`, `common`. Stateless authentication via Spring Security HTTP Basic. Frontend stores demo credentials only in browser session storage for a simple evaluation flow. No frontend business rule is trusted by the server.
+The backend uses conventional Spring layers in `controller`, `service`, `repository`, `entity`, and `dto` packages, with `config` and `common` for cross-cutting concerns. Authentication is stateless Spring Security HTTP Basic. The frontend stores demo credentials only in browser session storage for a simple evaluation flow. No frontend business rule is trusted by the server.
 
 ## Business rules (team design decisions)
 
@@ -64,24 +68,38 @@ Feature-first modules: `room`, `booking`, `config`, `common`. Stateless authenti
 5. Use ISO-8601 timestamps with offsets; PostgreSQL `TIMESTAMPTZ` persists instants.
 6. A confirmed booking for the same room may **never** overlap another confirmed booking. Intervals are half-open `[start,end)`: adjacent bookings are permitted.
 7. PostgreSQL GiST exclusion constraint over `tstzrange` is the **source of truth** under concurrent requests; conflicts return HTTP 409.
-8. Only booking owner or ADMIN may cancel a booking. Cancellation preserves audit history and releases its time slot.
+8. Only booking owner or ADMIN may cancel a booking; employees can cancel their own future bookings. Cancellation preserves history and releases its time slot.
 9. Availability results include active rooms having no overlapping confirmed booking.
 10. Rooms and booking history remain available to the appropriate authenticated roles; admin sees all bookings, employees view their own plus the shared calendar.
 
 ## API reference
 
+The interactive API contract is available in [Swagger UI](http://localhost:5001/swagger-ui.html)
+after starting the backend. Choose **Authorize** and enter one of the demo
+accounts from the table above using HTTP Basic authentication. Use the employee
+account for room browsing and booking, and the admin account for room mutations
+or the company booking list. The docs page is public; each API still enforces
+its server-side authentication and role rules.
+
+Flyway migration `V1__init.sql` creates the `rooms` and `bookings` schema and
+seeds four rooms (`Orchid`, `Lotus`, `Jasmine`, `Bamboo`). Demo identities are
+in-memory Spring Security users rather than rows in a users table. JPA validates
+the migrated schema at startup (`ddl-auto=validate`), so a schema mismatch stops
+the backend before the API becomes available.
+
 | Method | URL | Role | Function |
 | --- | --- | --- | --- |
-| GET | `/api/rooms` | USER/ADMIN | List rooms |
-| POST | `/api/rooms` | ADMIN | Add room |
-| PUT | `/api/rooms/{id}` | ADMIN | Edit room |
-| DELETE | `/api/rooms/{id}` | ADMIN | Deactivate room |
-| GET | `/api/rooms/available?start=...&end=...&minCapacity=...` | USER/ADMIN | Available rooms |
-| POST | `/api/bookings` | USER/ADMIN | Book a room |
-| GET | `/api/bookings/my` | USER/ADMIN | Own bookings |
-| GET | `/api/bookings` | ADMIN | All bookings |
-| GET | `/api/bookings/calendar?start=...&end=...` | USER/ADMIN | Calendar data |
-| PATCH | `/api/bookings/{id}/cancel` | Owner/ADMIN | Cancel booking |
+| GET | `/api/v1/rooms` | EMPLOYEE/ADMIN | List active rooms; ADMIN may pass `includeInactive=true` |
+| GET | `/api/v1/rooms/{id}` | EMPLOYEE/ADMIN | Room details |
+| POST | `/api/v1/rooms` | ADMIN | Add room |
+| PUT | `/api/v1/rooms/{id}` | ADMIN | Edit room |
+| DELETE | `/api/v1/rooms/{id}` | ADMIN | Deactivate room |
+| GET | `/api/v1/rooms/available?startTime=...&endTime=...&minCapacity=...` | EMPLOYEE/ADMIN | Available rooms |
+| POST | `/api/v1/bookings` | EMPLOYEE/ADMIN | Book a room |
+| GET | `/api/v1/bookings/me` | EMPLOYEE/ADMIN | Own bookings |
+| GET | `/api/v1/bookings` | ADMIN | All bookings |
+| GET | `/api/v1/bookings/calendar?from=...&to=...` | EMPLOYEE/ADMIN | Calendar data |
+| PATCH | `/api/v1/bookings/{id}/cancel` | Owner/ADMIN | Cancel booking |
 
 Create booking JSON:
 
@@ -89,7 +107,9 @@ Create booking JSON:
 {"roomId":1,"title":"Team planning","startTime":"2027-01-10T09:00:00Z","endTime":"2027-01-10T10:00:00Z"}
 ```
 
-Expected errors: 400 invalid request/range, 401 unauthenticated, 403 forbidden, 404 missing resource, 409 conflict or already canceled.
+Errors use one JSON envelope with `timestamp`, `status`, `code`, `message`, and `path`.
+Expected statuses: 400 invalid request/range, 401 unauthenticated, 403 forbidden,
+404 missing resource, and 409 booking/uniqueness conflict or invalid state transition.
 
 ## Important design decisions and rationale
 
@@ -102,6 +122,12 @@ Expected errors: 400 invalid request/range, 401 unauthenticated, 403 forbidden, 
 
 ## Development and verification
 
+Backend local run defaults to PostgreSQL at `jdbc:postgresql://localhost:5432/meetingroom`
+with user `postgres`; the local password default is `Password123`. Set
+`SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, and
+`SPRING_DATASOURCE_PASSWORD` to override these values. Keep these demo defaults
+local-only and change them for any shared or deployed environment.
+
 Backend (requires local Maven + PostgreSQL configured):
 
 ```bash
@@ -110,14 +136,55 @@ mvn test
 mvn spring-boot:run
 ```
 
+### Run or debug the backend in IntelliJ IDEA
+
+Open the repository root as the IntelliJ project, then add/reload
+`backend/pom.xml` as a Maven project. Select the shared
+`MeetingRoomApplication` configuration from the Run Configuration menu and
+press **Run** or **Debug**. The app uses the local PostgreSQL settings in
+`backend/src/main/resources/application.properties` by default; make sure the
+`meetingroom` database is available on `localhost:5432` first. The same
+configuration works with any `SPRING_DATASOURCE_*` environment overrides.
+
 Frontend (requires Node.js):
 
 ```bash
 cd frontend
+cp .env.example .env
 npm install
 npm run dev
 npm run build
 ```
+
+Set `VITE_API_BASE_URL` in `frontend/.env` when the API uses a different base URL. The default `/api/v1` goes through the Vite or nginx proxy.
+
+### One-pass MVP walkthrough
+
+Run `docker compose up --build`, then open http://localhost:3000.
+
+1. Sign in as `employee@demo.local` / `Employee123!`, search for a future time
+   range, book an available room, open **My bookings**, then cancel it.
+2. Sign in as `admin@demo.local` / `Admin123!`, add a room, edit it, deactivate
+   it, then edit it again and re-enable it. Open **Company bookings** to inspect
+   reservations across users.
+3. To check conflict handling, create one booking for a room and attempt an
+   overlapping booking for that same room. The server returns a conflict and
+   the form keeps the entered values. Adjacent time ranges remain allowed.
+
+These accounts are local demo identities. The frontend detects admin capability
+from the protected API response; authorization remains enforced by Spring Security.
+
+### Automated checks
+
+```bash
+cd backend
+mvn test
+```
+
+The PostgreSQL Testcontainers integration tests require a running Docker daemon.
+They are skipped when Docker is unavailable, so a successful Maven exit alone
+does not verify PostgreSQL migrations or concurrent overlap protection. The
+frontend check is `npm run build` from `frontend/`.
 
 Manual acceptance checks:
 
@@ -129,7 +196,7 @@ Manual acceptance checks:
 - [ ] Canceled booking no longer blocks its original slot.
 - [ ] Calendar and availability return correct results.
 
-**Current status:** starter implementation; commands and acceptance checks are **not claimed as passed** in this environment (Docker/Maven unavailable). Before submitting, execute and record test results, add more automated coverage (especially concurrency integration tests), and check the repository's actual commit history.
+The current verification status is recorded in `.okf/phase/001/PHASE_SUMMARY.md`.
 
 ## Submission
 

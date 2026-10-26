@@ -1,8 +1,8 @@
 # Developer Playbook
 
 - Follow `AGENTS.md` and the relevant `.okf/standards/` documents.
-- Inspect existing feature modules and follow their conventions before adding
-  a new abstraction.
+- Follow the standard package layers: `controller`, `service`, `repository`,
+  `entity`, and `dto`; keep shared concerns in `common` and `config`.
 - Keep REST controllers focused on HTTP binding and response mapping; place
   domain behavior in services as the module grows.
 - Validate and authorize on the server. Use transactions for multi-step writes.

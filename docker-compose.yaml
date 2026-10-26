@@ -22,7 +22,7 @@ services:
       postgres:
         condition: service_healthy
     ports:
-      - "8080:8080"
+      - "5001:5001"
   frontend:
     build: ./frontend
     depends_on:

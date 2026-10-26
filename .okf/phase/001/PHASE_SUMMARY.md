@@ -1,10 +1,10 @@
 ---
 phase: 001
 title: Core MVP
-status: planned
+status: in_progress
 created_at: 2026-10-26
 updated_at: 2026-10-26
-current_task: 001_001
+current_task: 001_003
 task_count: 3
 done_count: 0
 depends_on: []
@@ -57,21 +57,39 @@ Out:
 
 | Task | Outcome | Status | Verification |
 | --- | --- | --- | --- |
-| 001_001 | Complete and align core backend room/booking contracts | planned | Not run |
-| 001_002 | Complete essential employee and admin frontend flows | planned | Not run |
-| 001_003 | Integrate, verify, and close the runnable MVP | planned | Not run |
+| 001_001 | Complete and align core backend room/booking contracts | in_progress | `mvn -o clean -DskipTests package` passes; live PostgreSQL verification remains pending |
+| 001_002 | Complete essential employee and admin frontend flows | in_progress | `npm run build` passes; live UI/API walkthrough pending |
+| 001_003 | Integrate, verify, and close the runnable MVP | in_progress | `docker compose config` passes; full Compose/PostgreSQL run pending |
 
 ## Current task
 
-Selected: `001_001` — Complete and align core backend room/booking contracts.
-Status: planned; implementation has not started.
+Selected: `001_003` — Integrate, verify, and close the runnable MVP.
+Implementation across all three phase tasks is in place. Full-stack and
+PostgreSQL verification remains pending because Docker Desktop is not running.
+The latest clean Maven package passed with tests skipped; the earlier test run
+did not return a trustworthy final result.
 
 ## Decisions and durable contracts
 
-- Follow `PRODUCT_VISION.md` for business behavior. The code and README currently
-  use `/api` and `USER` in places while the vision specifies `/api/v1` and
-  `EMPLOYEE`; task 001_001 must reconcile that contract and update consumers/docs
-  together rather than leave two competing contracts.
+- API paths and query parameter names use `/api/v1`, `/bookings/me`,
+  `startTime`/`endTime`, and `from`/`to`; demo roles are `EMPLOYEE` and `ADMIN`.
+- Shared API roots, security roles/authorities, and booking statuses are named
+  constants under `common` to keep security and persistence contracts aligned.
+- Frontend supports employee search/booking/personal bookings/cancellation and
+  admin room management/company booking flows. It discovers admin capability
+  through the protected API; backend authorization remains authoritative.
+- Backend uses `application.properties`; frontend uses `frontend/.env` with
+  `VITE_API_BASE_URL`. Root `.env.example` configures Compose database settings.
+- Backend listens on port `5001`; Compose publishes `5001`, and both Vite and
+  nginx proxy API requests to that backend port.
+- Swagger UI is at `/swagger-ui.html` and OpenAPI JSON at `/v3/api-docs`;
+  documentation is public, while API operations retain Basic Auth/role checks.
+- Flyway V1 creates the `rooms` and `bookings` schema and seeds Orchid, Lotus,
+  Jasmine, and Bamboo. Demo users remain in-memory and are not persisted entities.
+- JPA entity column lengths/nullability now mirror the Flyway schema for startup
+  validation.
+- Added a shared IntelliJ `MeetingRoomApplication` Run/Debug configuration for
+  local backend development.
 - PostgreSQL's exclusion constraint remains the final guard against concurrent
   overlapping confirmed bookings.
 - React is an optional demonstration surface; all security and booking rules
@@ -79,12 +97,20 @@ Status: planned; implementation has not started.
 
 ## Open questions / blockers
 
-- None recorded. If reconciling the existing API/role naming reveals a material
-  compatibility constraint, document it before changing the public contract.
+- Docker Desktop's Linux engine pipe is unavailable. Testcontainers skips the
+  six PostgreSQL integration checks in this state; the Compose runtime and live
+  UI/API walkthrough have not been verified.
+- No Docker engine or local PostgreSQL listener is available, so Swagger UI,
+  Flyway seed startup, and JPA schema validation have not been exercised live.
+- `mvn test` did not return a final result in this environment. Maven emitted
+  `Access is denied` for its Java tool pipe; do not count that run as a pass.
 
 ## Next step
 
-- Start task `001_001` after the user asks to implement it.
+- Start Docker Desktop, run `docker compose up --build`, and follow the
+  one-pass employee/admin walkthrough in README. Then run `mvn test` in
+  `backend/` with Docker active; close this phase only after PostgreSQL tests
+  and the end-to-end flow pass.
 
 ## Task notes
 
@@ -118,7 +144,9 @@ In:
 Out:
 
 - Persistent employee directory, SSO, JWT refresh/session management, new
-  business policies not specified in `PRODUCT_VISION.md`, or frontend work.
+  business policies not specified in `PRODUCT_VISION.md`, or new frontend
+  features/UX changes. Update existing frontend API calls only to match the
+  backend contract.
 
 #### Acceptance criteria
 
@@ -166,7 +194,16 @@ Out:
 
 #### Done notes
 
-Not started.
+- Implemented service/DTO boundaries, API contract alignment, role checks,
+  standardized errors, room and booking validation, and focused tests.
+- Reorganized backend source into layer-first packages, with JPA entities
+  separated under `entity/`.
+- `mvn package`: BUILD SUCCESS; 12 tests discovered, 8 passed, 4 PostgreSQL
+  Testcontainers tests skipped because Docker was unavailable.
+- `npm run build`: passed after installing declared dependencies without writing
+  a lockfile; frontend changes only update the API path/query contract.
+- Full PostgreSQL and Docker Compose verification is still required; see
+  [001_001 implementation log](001_001_LOG.md).
 
 ### 001_002 — Complete essential employee and admin frontend flows
 
@@ -232,7 +269,14 @@ Out:
 
 #### Done notes
 
-Not started.
+- Implemented employee sign-in, room browsing, time/capacity availability
+  search, booking creation, personal booking listing, and cancellation.
+- Implemented admin room create/edit/deactivate/reactivate and company booking
+  listing/cancellation. Admin capability comes from the protected API response;
+  server authorization remains authoritative.
+- Added loading, empty, success, validation, and API error states. Booking form
+  state stays open when the API rejects a request.
+- `npm run build` passed. Live browser/API smoke check remains pending Docker.
 
 ### 001_003 — Integrate, verify, and close the runnable MVP
 
@@ -284,7 +328,7 @@ Out:
 
 #### Affected files
 
-- `compose.yaml`
+- `docker-compose.yaml`
 - `backend/` and `frontend/` integration/configuration as needed.
 - `README.md` and this phase summary.
 
@@ -302,10 +346,22 @@ Out:
 
 #### Done notes
 
-Not started.
+- README now includes a one-pass employee/admin walkthrough and explicit
+  PostgreSQL Testcontainers requirements. Compose uses the backend datasource
+  environment and the root `.env.example`; frontend settings use `.env`.
+- Added PostgreSQL integration tests for cancellation freeing a slot and
+  simultaneous overlapping bookings (expected one 201 and one 409).
+- `docker compose config` passed. `mvn -o clean -DskipTests package` passed
+  after adding Swagger/OpenAPI and entity metadata and compiled 20 production
+  sources and all 3 test sources. Tests were skipped for this pass. Docker
+  Desktop is not running, so PostgreSQL and live Compose checks remain pending.
+- Switched the backend host/container port from `8080` to `5001`; aligned
+  Spring Boot, Docker Compose, Dockerfile, Vite/nginx proxies, README, and
+  Product Vision. `docker compose config` and `npm run build` passed after the
+  port change.
 
-## Scan rule
+## Phase handoff
 
-Work on only the selected current task. Do not start dependent tasks until the
-current task's acceptance criteria and verification are recorded. Do not create
-future phases unless the user asks.
+The user requested completion of all three phase tasks for one test session.
+Keep status in progress until the Docker/PostgreSQL and live walkthrough checks
+are recorded; do not infer completion from implementation or compilation alone.

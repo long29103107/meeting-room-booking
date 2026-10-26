@@ -18,7 +18,9 @@ record a focused correction instead of assuming either is current.
 ## Project boundaries
 
 - Backend: Java 21, Spring Boot 3, REST/JSON, Spring Data JPA, PostgreSQL 16,
-  Flyway, Spring Security, Maven; feature-first modular monolith.
+  Flyway, Spring Security, Maven; modular monolith using conventional Spring
+  layers: Controller → Service → Repository, with entities and DTOs at the data
+  and API boundaries.
 - Frontend: optional React + TypeScript + Vite demonstration UI. Enforce all
   business rules and authorization in the backend.
 - Runtime: Docker Compose; keep the documented single-command startup working.
@@ -39,8 +41,9 @@ record a focused correction instead of assuming either is current.
   `.okf/decisions/` and update `PRODUCT_VISION.md` when scope or behavior changes.
 - Prefer the smallest end-to-end slice. Do not create a phase or expand the
   product roadmap unless the user asks.
-- Keep controllers thin, validate requests on the server, enforce access on the
-  server, and preserve API error semantics documented in `README.md`.
+- Keep controllers thin, put business rules/transactions in services and data
+  access in repositories. Validate and authorize on the server, and preserve the
+  API error semantics documented in `README.md`.
 - Database changes go through a new Flyway migration; do not edit an already
   applied migration to change existing schema state.
 - Never commit secrets or trust frontend checks for authorization or booking rules.

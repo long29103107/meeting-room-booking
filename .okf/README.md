@@ -68,7 +68,8 @@ description matches the requested work.
 
 - Stack: Java 21, Spring Boot 3, Maven, REST/JSON, Spring Data JPA, PostgreSQL
   16, Flyway, Spring Security, Docker Compose; optional React/TypeScript/Vite UI.
-- Modules currently include `room`, `booking`, `common`, and `config`.
+- Backend packages follow the standard layered layout: `controller`, `service`,
+  `repository`, `entity`, `dto`, `common`, and `config`.
 - Confirmed booking intervals are half-open `[start,end)`; adjacent bookings are
   permitted, and PostgreSQL exclusion constraints prevent concurrent overlap.
 - Room deactivation and booking cancellation preserve history.
