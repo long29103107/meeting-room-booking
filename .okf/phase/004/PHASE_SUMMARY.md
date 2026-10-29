@@ -29,8 +29,8 @@ depends_on: [001, 002, 003]
 
 | Task | Outcome | Status | Verification |
 | --- | --- | --- | --- |
-| 004_001 | Validate final Compose and PostgreSQL integration | in_progress | Compose config and non-Docker checks pass; Docker engine blocks runtime checks |
-| 004_002 | Publish frontend/backend images to GHCR | in_progress | Compose config and workflow YAML parse pass; GitHub Actions run and GHCR package visibility require a push to GitHub |
+| 004_001 | Validate final Compose and PostgreSQL integration | in_progress | Compose stack and service health verified; employee/admin walkthrough remains |
+| 004_002 | Publish frontend/backend images to GHCR | in_progress | User reports CI released images; public pull access was not rechecked in this task |
 
 ## Decisions and durable contracts
 
@@ -40,22 +40,20 @@ depends_on: [001, 002, 003]
   completion; skipped tests do not count as verified.
 - GitHub Actions builds both app images for pull requests and publishes
   `latest`, branch, version, and short-SHA tags to GHCR for eligible pushes.
-  Compose retains local build contexts and uses the corresponding GHCR image
-  names; the official PostgreSQL image remains service three.
+  Compose pulls the GHCR app images and official PostgreSQL image on startup,
+  without local build contexts.
 
 ## Open questions / blockers
 
-- Earlier Docker attempts returned HTTP 500 from the Windows named-pipe
-  contexts. On the 2026-10-29 recheck, no Docker Desktop process was running and
-  the `desktop-linux` named pipe was absent.
-- Feature phase 003 is now complete; final integration remains dependent on
-  restoring Docker Desktop engine access.
+- Docker Desktop initially returned HTTP 500 from its `desktop-linux` engine
+  API. Restarting Docker Desktop restored engine access and Compose startup.
+- Feature phase 003 is complete. The employee/admin walkthrough remains, and
+  GHCR package pull access was not verified in this task.
 
 ## Next step
 
-- Push the workflow changes to GitHub to run the image build/publish workflow;
-  verify both packages are public, then restore Docker engine access to resume
-  Compose startup, Testcontainers, and the full employee/admin smoke walkthrough.
+- Verify the published GHCR images can be pulled, then continue the
+  employee/admin smoke walkthrough against the Compose stack.
 
 ## Verification completed
 
@@ -94,5 +92,18 @@ depends_on: [001, 002, 003]
   already resolved by the frozen lock. Docker image verification remains
   pending because this session cannot connect to the Docker engine.
 - After the Dockerfile change, `npm run build` passed (TypeScript and Vite,
-  1,604 modules), and `docker compose config` still passed. `docker version`
-  remains blocked by access denied to the Docker Desktop named pipe.
+  1,604 modules), and `docker compose config` still passed.
+- On 2026-10-29, restarted Docker Desktop after Compose received HTTP 500 from
+  the engine API. `docker compose up -d --build` then completed successfully:
+  PostgreSQL 16 started healthy, and backend/frontend images built locally.
+  The frontend Docker build confirmed the Alpine Rollup/esbuild native-package
+  fix.
+- Verified backend Flyway migration v1 applied and Spring Boot started on port
+  5001; `/actuator/health` returned `{"status":"UP"}`. Frontend at
+  `http://localhost:5000` returned HTTP 200. `docker compose ps` showed all
+  three services running, with PostgreSQL healthy.
+- Updated Compose for registry-only startup: all services use
+  `pull_policy: always`, application build contexts were removed, and README
+  now uses `docker compose up -d`. `docker compose config -q` passed; rendered
+  service images are PostgreSQL 16 and the two GHCR `latest` images, with no
+  build configuration.

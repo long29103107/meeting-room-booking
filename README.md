@@ -19,7 +19,7 @@ These are from the PDF. The frontend, authentication scheme, API shapes and busi
 Prerequisites: Docker Desktop (Compose v2). From repository root:
 
 ```bash
-docker compose up --build
+docker compose up -d
 ```
 
 - UI: http://localhost:5000
@@ -33,8 +33,9 @@ No manual database initialization required. Flyway creates tables, constraints a
 Optional: copy the root `.env.example` to `.env` to customize the PostgreSQL credentials used by Docker Compose.
 
 The Compose file defines three services: frontend, backend, and PostgreSQL.
-Frontend and backend use these GHCR image names while retaining their local
-Docker build contexts, so `docker compose up --build` builds from the checkout.
+All three images are pulled from their registries when Compose starts; the
+frontend and backend use the GHCR images published by GitHub Actions. Compose
+does not build application images from the local checkout.
 
 ```text
 ghcr.io/long29103107/meeting-room-booking-frontend:latest
@@ -43,9 +44,9 @@ ghcr.io/long29103107/meeting-room-booking-backend:latest
 
 The GitHub Actions workflow builds both images for pull requests without
 publishing. Pushes to `main` publish the `latest`, branch, and short SHA tags;
-pushes of `v*` tags publish the matching version and short SHA tags. To run the
-published images, pull them with `docker compose pull`, then start the stack
-with `docker compose up --no-build`.
+pushes of `v*` tags publish the matching version and short SHA tags. To update
+the running stack manually, run `docker compose pull` followed by
+`docker compose up -d`.
 
 GHCR packages created by the workflow inherit the repository's visibility and
 permissions. For anonymous public pulls, make the repository public or set
@@ -188,7 +189,7 @@ Set `VITE_API_BASE_URL` in `frontend/.env` when the API uses a different base UR
 
 ### One-pass MVP walkthrough
 
-Run `docker compose up --build`, then open http://localhost:5000.
+Run `docker compose up -d`, then open http://localhost:5000.
 
 1. Sign in as `employee@demo.local` / `Employee123!`, search for a future time
    range, book an available room, open **Room calendar** to inspect confirmed
@@ -217,7 +218,7 @@ frontend check is `bun run build` from `frontend/`.
 
 Manual acceptance checks:
 
-- [ ] `docker compose up --build` launches all 3 services.
+- [ ] `docker compose up -d` pulls published images and launches all 3 services.
 - [ ] Employee can view rooms and available times, book, view own bookings and cancel.
 - [ ] Admin can create/edit/deactivate rooms; regular users get 403 on admin endpoints.
 - [ ] Two overlapping requests for the same room cannot both commit; second gets 409.

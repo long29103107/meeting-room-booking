@@ -1,6 +1,7 @@
 services:
   postgres:
     image: postgres:16-alpine
+    pull_policy: always
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-meetingroom}
       POSTGRES_USER: ${POSTGRES_USER:-meetingroom}
@@ -14,7 +15,7 @@ services:
       - dbdata:/var/lib/postgresql/data
   backend:
     image: ghcr.io/long29103107/meeting-room-booking-backend:latest
-    build: ./backend
+    pull_policy: always
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-meetingroom}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-meetingroom}
@@ -26,7 +27,7 @@ services:
       - "5001:5001"
   frontend:
     image: ghcr.io/long29103107/meeting-room-booking-frontend:latest
-    build: ./frontend
+    pull_policy: always
     depends_on:
       - backend
     ports:
