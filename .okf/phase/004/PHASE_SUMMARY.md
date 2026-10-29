@@ -4,9 +4,9 @@ title: Final Integration and Delivery
 status: in_progress
 created_at: 2026-10-26
 updated_at: 2026-10-29
-current_task: 004_011
-task_count: 11
-done_count: 9
+current_task: 004_012
+task_count: 12
+done_count: 10
 depends_on: [001, 002, 003]
 ---
 
@@ -40,6 +40,7 @@ depends_on: [001, 002, 003]
 | 004_009 | Paginate room cards | complete | Room cards use shared pagination controls with 10/20/40 item page sizes, defaulting to 10; frontend production build passed |
 | 004_010 | Paginate calendar rooms | complete | Calendar groups use shared pagination controls with 5/10/15 item page sizes; frontend production build passed |
 | 004_011 | Remove calendar success toast | complete | Successful calendar loads no longer show a toast; frontend production build passed |
+| 004_012 | Fetch booking pages from the backend | complete | Added filtered pageable API endpoints and wired booking lists to fetch each page; frontend build and backend package passed; DB runtime not verified |
 
 ## Decisions and durable contracts
 

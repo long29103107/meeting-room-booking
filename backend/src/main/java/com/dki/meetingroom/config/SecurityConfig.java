@@ -61,6 +61,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, ApiPaths.ROOM_SUBPATHS).hasRole(SecurityRoles.ADMIN)
                         .requestMatchers(HttpMethod.DELETE, ApiPaths.ROOM_SUBPATHS).hasRole(SecurityRoles.ADMIN)
                         .requestMatchers(HttpMethod.GET, ApiPaths.BOOKINGS).hasRole(SecurityRoles.ADMIN)
+                        .requestMatchers(HttpMethod.GET, ApiPaths.BOOKINGS + "/page").hasRole(SecurityRoles.ADMIN)
                         .anyRequest().authenticated())
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint((request, response, exception) -> writeSecurityError(

@@ -2,6 +2,7 @@ package com.dki.meetingroom.service;
 
 import com.dki.meetingroom.dto.booking.BookingRequest;
 import com.dki.meetingroom.dto.booking.BookingResponse;
+import com.dki.meetingroom.dto.booking.PageResponse;
 import com.dki.meetingroom.dto.room.RoomResponse;
 import com.dki.meetingroom.common.BookingStatuses;
 import com.dki.meetingroom.entity.Booking;
@@ -9,6 +10,9 @@ import com.dki.meetingroom.entity.Room;
 import com.dki.meetingroom.repository.BookingRepository;
 import com.dki.meetingroom.repository.RoomRepository;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,9 +21,14 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.Clock;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class BookingService {
+    private static final int MAX_PAGE_SIZE = 100;
+    private static final Set<String> BOOKING_STATUSES = Set.of(
+            BookingStatuses.CONFIRMED, BookingStatuses.CANCELLED);
+
     private final BookingRepository bookings;
     private final RoomRepository rooms;
     private final Clock clock;
@@ -70,6 +79,43 @@ public class BookingService {
         return bookings.findAllByOrderByStartTimeDesc().stream()
                 .map(BookingResponse::from)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public PageResponse<BookingResponse> findMinePage(
+            String userEmail, int page, int size, String query, String status) {
+        return findBookingPage(userEmail, true, page, size, query, status);
+    }
+
+    @Transactional(readOnly = true)
+    public PageResponse<BookingResponse> findAllPage(
+            int page, int size, String query, String status) {
+        return findBookingPage(null, false, page, size, query, status);
+    }
+
+    private PageResponse<BookingResponse> findBookingPage(
+            String userEmail, boolean activeRoomsOnly, int page, int size, String query, String status) {
+        if (page < 0 || size < 1 || size > MAX_PAGE_SIZE) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "page must be non-negative and size must be between 1 and " + MAX_PAGE_SIZE);
+        }
+        if (status != null && !BOOKING_STATUSES.contains(status)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "status must be CONFIRMED or CANCELLED");
+        }
+        if (query != null && query.length() > 100) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "query must be at most 100 characters");
+        }
+
+        String normalizedQuery = query == null || query.isBlank()
+                ? null
+                : query.trim().toLowerCase(java.util.Locale.ROOT);
+        PageRequest pageable = PageRequest.of(page, size,
+                Sort.by(Sort.Order.desc("startTime"), Sort.Order.desc("id")));
+        Page<Booking> result = bookings.searchPage(
+                userEmail, activeRoomsOnly, userEmail == null, status, normalizedQuery, pageable);
+        return new PageResponse<>(
+                result.getContent().stream().map(BookingResponse::from).toList(),
+                result.getNumber(), result.getSize(), result.getTotalElements(), result.getTotalPages());
     }
 
     @Transactional(readOnly = true)

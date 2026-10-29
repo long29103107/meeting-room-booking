@@ -2,6 +2,8 @@ package com.dki.meetingroom.repository;
 
 import com.dki.meetingroom.common.BookingStatuses;
 import com.dki.meetingroom.entity.Booking;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -18,6 +20,29 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findByUserEmailOrderByStartTimeDesc(String userEmail);
 
     List<Booking> findAllByOrderByStartTimeDesc();
+
+    @Query(value = "select b from Booking b join b.room r "
+            + "where (:userEmail is null or b.userEmail = :userEmail) "
+            + "and (:activeRoomsOnly = false or r.active = true) "
+            + "and (:status is null or b.status = :status) "
+            + "and (:query is null or lower(b.title) like concat('%', :query, '%') "
+            + "or lower(r.name) like concat('%', :query, '%') "
+            + "or lower(r.location) like concat('%', :query, '%') "
+            + "or (:includeOwner = true and lower(b.userEmail) like concat('%', :query, '%'))) ",
+            countQuery = "select count(b) from Booking b join b.room r "
+                    + "where (:userEmail is null or b.userEmail = :userEmail) "
+                    + "and (:activeRoomsOnly = false or r.active = true) "
+                    + "and (:status is null or b.status = :status) "
+                    + "and (:query is null or lower(b.title) like concat('%', :query, '%') "
+                    + "or lower(r.name) like concat('%', :query, '%') "
+                    + "or lower(r.location) like concat('%', :query, '%') "
+                    + "or (:includeOwner = true and lower(b.userEmail) like concat('%', :query, '%')))")
+    Page<Booking> searchPage(@Param("userEmail") String userEmail,
+                             @Param("activeRoomsOnly") boolean activeRoomsOnly,
+                             @Param("includeOwner") boolean includeOwner,
+                             @Param("status") String status,
+                             @Param("query") String query,
+                             Pageable pageable);
 
     @Query("select b from Booking b where b.startTime < :end and b.endTime > :start "
             + "and b.status='" + BookingStatuses.CONFIRMED + "' order by b.startTime")

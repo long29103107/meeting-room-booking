@@ -8,8 +8,7 @@ type WorkspaceContextValue = {
   workspaceReady: boolean;
   admin: boolean;
   rooms: Room[];
-  mine: Booking[];
-  allBookings: Booking[];
+  bookingRevision: number;
   available: Room[];
   searched: boolean;
   calendarBookings: Booking[];
@@ -40,8 +39,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [workspaceReady, setWorkspaceReady] = useState(false);
   const [admin, setAdmin] = useState(false);
   const [rooms, setRooms] = useState<Room[]>([]);
-  const [mine, setMine] = useState<Booking[]>([]);
-  const [allBookings, setAllBookings] = useState<Booking[]>([]);
+  const [bookingRevision, setBookingRevision] = useState(0);
   const [available, setAvailable] = useState<Room[]>([]);
   const [searched, setSearched] = useState(false);
   const [calendarBookings, setCalendarBookings] = useState<Booking[]>([]);
@@ -62,24 +60,19 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const load = useCallback(async (token: string) => {
-    const [roomList, myBookings] = await Promise.all([
-      apiRequest<Room[]>('/rooms', token),
-      apiRequest<Booking[]>('/bookings/me', token),
-    ]);
+    const roomList = await apiRequest<Room[]>('/rooms', token);
     let isAdmin = false;
-    let company: Booking[] = [];
     let visibleRooms = roomList;
     try {
-      company = await apiRequest<Booking[]>('/bookings', token);
+      await apiRequest<unknown>('/bookings/page?page=0&size=1', token);
       isAdmin = true;
       visibleRooms = await apiRequest<Room[]>('/rooms?includeInactive=true', token);
     } catch (error) {
       if (!(error instanceof ApiError) || error.status !== 403) throw error;
     }
     setRooms(visibleRooms);
-    setMine(myBookings);
-    setAllBookings(company);
     setAdmin(isAdmin);
+    setBookingRevision(revision => revision + 1);
   }, []);
 
   const refresh = useCallback(async () => {
@@ -119,8 +112,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     setAuth('');
     setAdmin(false);
     setRooms([]);
-    setMine([]);
-    setAllBookings([]);
+    setBookingRevision(revision => revision + 1);
     setAvailable([]);
     setSearched(false);
     setCalendarBookings([]);
@@ -250,7 +242,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 
   return (
     <WorkspaceContext.Provider value={{
-      auth, workspaceReady, admin, rooms, mine, allBookings, available, searched, calendarBookings,
+      auth, workspaceReady, admin, rooms, bookingRevision, available, searched, calendarBookings,
       calendarSearched, busy, loading, toasts, confirmation, login, logout, refresh,
       notify, dismissToast, closeConfirmation, searchRooms, searchCalendar, book,
       cancel, saveRoom, deactivate, clearCalendarSearch,

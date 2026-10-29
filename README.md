@@ -125,8 +125,17 @@ schema mismatch stops the backend before the API becomes available.
 | POST | `/api/v1/bookings` | EMPLOYEE/ADMIN | Book a room |
 | GET | `/api/v1/bookings/me` | EMPLOYEE/ADMIN | Own bookings |
 | GET | `/api/v1/bookings` | ADMIN | All bookings |
+| GET | `/api/v1/bookings/me/page?page=0&size=10` | EMPLOYEE/ADMIN | Page through own bookings; optional `query` and `status` filters |
+| GET | `/api/v1/bookings/page?page=0&size=10` | ADMIN | Page through company bookings; optional `query` and `status` filters |
 | GET | `/api/v1/bookings/calendar?from=...&to=...` | EMPLOYEE/ADMIN | Calendar data |
 | PATCH | `/api/v1/bookings/{id}/cancel` | Owner/ADMIN | Cancel booking |
+
+The paginated booking endpoints use zero-based `page`, `size` from 1 to 100,
+optional `query`, and optional `status` (`CONFIRMED` or `CANCELLED`). Responses
+include `content`, `page`, `size`, `totalElements`, and `totalPages`. Employee
+pages include only the authenticated employee's bookings in active rooms;
+company pages are admin-only and include booking history for inactive rooms.
+The array endpoints remain available for compatibility.
 
 Create booking JSON:
 

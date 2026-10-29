@@ -204,6 +204,8 @@ token flow. Prefer consistent JSON error shape and sensible pagination/filtering
 | POST | `/bookings` | Auth | Create reservation |
 | GET | `/bookings/me` | Auth | List my reservations |
 | GET | `/bookings` | ADMIN | List all company bookings |
+| GET | `/bookings/me/page?page=0&size=10` | Auth | Get a page of my bookings, optionally filtered by `query` and `status` |
+| GET | `/bookings/page?page=0&size=10` | ADMIN | Get a page of company bookings, optionally filtered by `query` and `status` |
 | GET | `/bookings/calendar?from=...&to=...` | Auth | Confirmed bookings in a time window |
 | PATCH | `/bookings/{id}/cancel` | Owner/ADMIN | Cancel reservation |
 
@@ -237,6 +239,11 @@ Successful response: `201 Created`, with booking ID, owner, room, status and tim
 ```
 
 Suggested HTTP conventions: 400 invalid input, 401 unauthenticated, 403 forbidden, 404 missing resource, 409 booking or uniqueness conflict, 500 unexpected error.
+
+The paginated booking-list endpoints use zero-based `page`, `size` from 1 to 100,
+optional text `query`, and optional `status` (`CONFIRMED` or `CANCELLED`). They
+return `content`, `page`, `size`, `totalElements`, and `totalPages`; the legacy
+array endpoints remain available for existing callers.
 
 ## 8. Code organization
 

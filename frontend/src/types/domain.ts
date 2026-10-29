@@ -12,6 +12,14 @@ export type Booking = {
   userEmail: string;
 };
 
+export type PageResponse<T> = {
+  content: T[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+};
+
 export type RoomDraft = { id?: number; name: string; capacity: number; location: string; active: boolean };
 export type ToastKind = 'success' | 'error';
 export type ToastMessage = { id: number; message: string; kind: ToastKind };

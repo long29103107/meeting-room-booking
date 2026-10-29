@@ -2,6 +2,7 @@ package com.dki.meetingroom.controller;
 
 import com.dki.meetingroom.dto.booking.BookingRequest;
 import com.dki.meetingroom.dto.booking.BookingResponse;
+import com.dki.meetingroom.dto.booking.PageResponse;
 import com.dki.meetingroom.common.ApiPaths;
 import com.dki.meetingroom.common.SecurityRoles;
 import com.dki.meetingroom.service.BookingService;
@@ -49,10 +50,31 @@ public class BookingController {
         return bookingService.findMine(authentication.getName());
     }
 
+    @GetMapping("/me/page")
+    @Operation(summary = "List a page of my bookings")
+    public PageResponse<BookingResponse> minePage(
+            Authentication authentication,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String query,
+            @RequestParam(required = false) String status) {
+        return bookingService.findMinePage(authentication.getName(), page, size, query, status);
+    }
+
     @GetMapping
     @Operation(summary = "List all bookings (admin only)")
     public List<BookingResponse> all() {
         return bookingService.findAll();
+    }
+
+    @GetMapping("/page")
+    @Operation(summary = "List a page of company bookings (admin only)")
+    public PageResponse<BookingResponse> allPage(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String query,
+            @RequestParam(required = false) String status) {
+        return bookingService.findAllPage(page, size, query, status);
     }
 
     @GetMapping("/calendar")
