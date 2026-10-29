@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
-import { CalendarDays, Search } from 'lucide-react';
+import { CalendarDays, ChevronDown, ChevronRight, Search } from 'lucide-react';
 import { useWorkspace } from '../contexts/WorkspaceContext';
 import { Room } from '../types/domain';
 import { localDateTimeInput } from '../utils/dateTime';
@@ -16,6 +16,7 @@ export function CalendarPage() {
   const [from, setFrom] = useState(defaultRange.from);
   const [to, setTo] = useState(defaultRange.to);
   const [roomId, setRoomId] = useState('');
+  const [collapsedRoomIds, setCollapsedRoomIds] = useState<Set<number>>(() => new Set());
 
   useEffect(() => {
     void searchCalendar(defaultRange.from, defaultRange.to);
@@ -44,6 +45,15 @@ export function CalendarPage() {
     void searchCalendar(from, to);
   }
 
+  function toggleRoom(roomIdToToggle: number) {
+    setCollapsedRoomIds(current => {
+      const next = new Set(current);
+      if (next.has(roomIdToToggle)) next.delete(roomIdToToggle);
+      else next.add(roomIdToToggle);
+      return next;
+    });
+  }
+
   return <>
     <section className="search">
       <div className="section-title"><CalendarDays size={20} /><h2>Choose a time range</h2></div>
@@ -66,16 +76,29 @@ export function CalendarPage() {
         ? <div className="empty-state">No confirmed bookings for active rooms in this time range.</div>
         : visibleBookings.length === 0
           ? <div className="empty-state">No confirmed bookings for this room in the selected time range.</div>
-          : <div className="calendar-room-list">{Array.from(groupedBookings.entries()).map(([id, bookings]) => {
+          : <>
+            <div className="calendar-room-controls">
+              <button className="secondary" type="button" onClick={() => setCollapsedRoomIds(new Set(groupedBookings.keys()))}>Collapse all</button>
+              <button className="secondary" type="button" onClick={() => setCollapsedRoomIds(new Set())}>Expand all</button>
+            </div>
+            <div className="calendar-room-list">{Array.from(groupedBookings.entries()).map(([id, bookings]) => {
             const room = bookings[0].room;
+            const isCollapsed = collapsedRoomIds.has(id);
             return <section className="calendar-room" key={id}>
-              <div className="calendar-room-heading"><div><h2>{room.name}</h2><p>{room.location} · Seats {room.capacity}</p></div><span>{bookings.length} booking{bookings.length === 1 ? '' : 's'}</span></div>
-              <div className="calendar-bookings">{bookings.map(booking => <article className="calendar-booking" key={booking.id}>
+              <div className="calendar-room-heading">
+                <button className="calendar-room-toggle" type="button" aria-expanded={!isCollapsed} aria-controls={`calendar-room-bookings-${id}`} onClick={() => toggleRoom(id)}>
+                  {isCollapsed ? <ChevronRight size={18} /> : <ChevronDown size={18} />}
+                  <span><strong>{room.name}</strong><small>{room.location} · Seats {room.capacity}</small></span>
+                </button>
+                <span>{bookings.length} booking{bookings.length === 1 ? '' : 's'}</span>
+              </div>
+              {!isCollapsed && <div className="calendar-bookings" id={`calendar-room-bookings-${id}`}>{bookings.map(booking => <article className="calendar-booking" key={booking.id}>
                 <div className="calendar-booking-time"><strong>{new Date(booking.startTime).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</strong><span>{new Date(booking.endTime).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</span></div>
                 <div className="calendar-booking-title"><h3>{booking.title}</h3><p>{new Date(booking.startTime).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}</p></div>
                 <span className="status">CONFIRMED</span>
-              </article>)}</div>
+              </article>)}</div>}
             </section>;
-          })}</div>}
+          })}</div>
+          </>}
   </>;
 }

@@ -4,9 +4,9 @@ title: Final Integration and Delivery
 status: in_progress
 created_at: 2026-10-26
 updated_at: 2026-10-29
-current_task: 004_007
-task_count: 7
-done_count: 5
+current_task: 004_008
+task_count: 8
+done_count: 6
 depends_on: [001, 002, 003]
 ---
 
@@ -36,6 +36,7 @@ depends_on: [001, 002, 003]
 | 004_005 | Auto-load the calendar schedule | complete | Calendar defaults to a seven-day window and fetches on entry; frontend production build passed |
 | 004_006 | Filter and paginate booking lists | complete | Search, status filter and 10/20/50 page sizes implemented; frontend production build passed |
 | 004_007 | Hide inactive-room bookings from employee views | complete | My bookings and calendar/filter hide inactive rooms; frontend production build passed |
+| 004_008 | Collapse and expand calendar room schedules | complete | Per-room and all-room controls added; frontend production build passed |
 
 ## Decisions and durable contracts
 
@@ -138,3 +139,7 @@ depends_on: [001, 002, 003]
   Booking records remain stored and visible in admin Company bookings.
   `npm run build` passed; the change requires a newly published frontend image
   before the registry-only Compose stack receives it.
+- Added accessible per-room collapse/expand controls plus Collapse all / Expand
+  all actions to the calendar. Booking counts stay visible in collapsed room
+  headers. `npm run build` passed (1,604 modules); the running Compose UI needs
+  a newly published frontend image to receive this change.

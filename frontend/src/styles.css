@@ -40,6 +40,13 @@ select { height: 46px; border: 1px solid #dce4ee; border-radius: 9px; padding: 0
 .calendar-room-heading { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 19px 24px; background: #f6f9fc; border-bottom: 1px solid #e9eef4; }
 .calendar-room-heading h2 { margin: 0 0 5px; font-size: 17px; }
 .calendar-room-heading p, .calendar-room-heading span { margin: 0; color: #748398; font-size: 12px; }
+.calendar-room-controls { display: flex; justify-content: flex-end; gap: 8px; margin: -16px 0 14px; }
+.calendar-room-toggle { display: inline-flex; align-items: center; gap: 10px; padding: 0; color: inherit; text-align: left; background: transparent; }
+.calendar-room-toggle > svg { flex: 0 0 auto; color: #2875bb; }
+.calendar-room-toggle span { display: flex; flex-direction: column; gap: 5px; }
+.calendar-room-toggle strong { font-size: 17px; }
+.calendar-room-toggle small { color: #748398; font-size: 12px; }
+.calendar-room-toggle:focus-visible { outline: 2px solid #2875bb; outline-offset: 4px; border-radius: 3px; }
 .calendar-bookings { padding: 0 24px; }
 .calendar-booking { display: flex; align-items: center; gap: 18px; padding: 17px 0; border-bottom: 1px solid #edf1f6; }
 .calendar-booking:last-child { border-bottom: 0; }
