@@ -1,11 +1,14 @@
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { Plus, Search } from 'lucide-react';
+import { Pagination } from '../components/common/Pagination';
 import { BookingDialog } from '../components/rooms/BookingDialog';
 import { RoomCard } from '../components/rooms/RoomCard';
 import { RoomEditorDialog } from '../components/rooms/RoomEditorDialog';
 import { useWorkspace } from '../contexts/WorkspaceContext';
 import { Room, RoomDraft } from '../types/domain';
 import { localDateTimeInput } from '../utils/dateTime';
+
+const ROOM_PAGE_SIZES = [10, 20, 40];
 
 export function RoomsPage() {
   const { admin, rooms, available, searched, busy, searchRooms, saveRoom, deactivate, book } = useWorkspace();
@@ -14,7 +17,24 @@ export function RoomsPage() {
   const [capacity, setCapacity] = useState('');
   const [bookingRoom, setBookingRoom] = useState<Room | null>(null);
   const [roomDraft, setRoomDraft] = useState<RoomDraft | null>(null);
-  const roomResults = searched ? available : rooms.filter(room => admin || room.active);
+  const [pageSize, setPageSize] = useState(ROOM_PAGE_SIZES[0]);
+  const [page, setPage] = useState(1);
+  const roomResults = useMemo(
+    () => searched ? available : rooms.filter(room => admin || room.active),
+    [admin, available, rooms, searched],
+  );
+  const pageCount = Math.max(1, Math.ceil(roomResults.length / pageSize));
+  const currentPage = Math.min(page, pageCount);
+  const startIndex = (currentPage - 1) * pageSize;
+  const visibleRooms = roomResults.slice(startIndex, startIndex + pageSize);
+
+  useEffect(() => {
+    setPage(1);
+  }, [roomResults]);
+
+  useEffect(() => {
+    if (page !== currentPage) setPage(currentPage);
+  }, [currentPage, page]);
 
   function editRoom(room?: Room) {
     setRoomDraft(room
@@ -42,10 +62,16 @@ export function RoomsPage() {
       {admin && <button className="secondary" onClick={() => editRoom()}><Plus size={17} /> Add room</button>}
     </div>
     {roomResults.length === 0 && <div className="empty-state">{searched ? 'No rooms available for that time and capacity.' : 'No active rooms are available.'}</div>}
-    <div className="room-grid">{roomResults.map(room => <RoomCard
+    {roomResults.length > 0 && <div className="room-pagination-toolbar">
+      <div className="room-list-meta" aria-live="polite">Showing {startIndex + 1}–{Math.min(startIndex + pageSize, roomResults.length)} of {roomResults.length} rooms</div>
+    </div>}
+    <div className="room-grid">{visibleRooms.map(room => <RoomCard
       key={room.id} room={room} admin={admin} busy={busy}
       onBook={setBookingRoom} onEdit={editRoom} onDeactivate={deactivate}
     />)}</div>
+    {roomResults.length > 0 && <Pagination page={currentPage} pageCount={pageCount} pageSize={pageSize}
+      pageSizes={ROOM_PAGE_SIZES} ariaLabel="Room pages"
+      onPageChange={setPage} onPageSizeChange={size => { setPageSize(size); setPage(1); }} />}
 
     {bookingRoom && <BookingDialog room={bookingRoom} busy={busy} initialStart={start} initialEnd={end} onClose={() => setBookingRoom(null)}
       onSubmit={(title, bookingStart, bookingEnd) => book(bookingRoom, title, bookingStart, bookingEnd)} />}

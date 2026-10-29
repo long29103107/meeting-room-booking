@@ -1,8 +1,11 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { CalendarDays, ChevronDown, ChevronRight, Search } from 'lucide-react';
+import { Pagination } from '../components/common/Pagination';
 import { useWorkspace } from '../contexts/WorkspaceContext';
 import { Room } from '../types/domain';
 import { localDateTimeInput } from '../utils/dateTime';
+
+const ROOM_PAGE_SIZES = [5, 10, 15];
 
 export function CalendarPage() {
   const { rooms, calendarBookings, calendarSearched, busy, searchCalendar, clearCalendarSearch } = useWorkspace();
@@ -16,6 +19,8 @@ export function CalendarPage() {
   const [from, setFrom] = useState(defaultRange.from);
   const [to, setTo] = useState(defaultRange.to);
   const [roomId, setRoomId] = useState('');
+  const [pageSize, setPageSize] = useState(ROOM_PAGE_SIZES[0]);
+  const [page, setPage] = useState(1);
   const [collapsedRoomIds, setCollapsedRoomIds] = useState<Set<number>>(() => new Set());
 
   useEffect(() => {
@@ -39,9 +44,19 @@ export function CalendarPage() {
     groups.set(booking.room.id, group);
     return groups;
   }, new Map());
+  const groupedRooms = Array.from(groupedBookings.entries());
+  const pageCount = Math.max(1, Math.ceil(groupedRooms.length / pageSize));
+  const currentPage = Math.min(page, pageCount);
+  const startIndex = (currentPage - 1) * pageSize;
+  const visibleRoomGroups = groupedRooms.slice(startIndex, startIndex + pageSize);
+
+  useEffect(() => {
+    if (page !== currentPage) setPage(currentPage);
+  }, [currentPage, page]);
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setPage(1);
     void searchCalendar(from, to);
   }
 
@@ -60,7 +75,7 @@ export function CalendarPage() {
       <form className="calendar-filters" onSubmit={submit}>
         <label>From<input type="datetime-local" value={from} onChange={event => { setFrom(event.target.value); clearCalendarSearch(); }} required /></label>
         <label>To<input type="datetime-local" value={to} onChange={event => { setTo(event.target.value); clearCalendarSearch(); }} required /></label>
-        <label>Room<select value={roomId} onChange={event => setRoomId(event.target.value)}>
+        <label>Room<select value={roomId} onChange={event => { setRoomId(event.target.value); setPage(1); }}>
           <option value="">All rooms</option>
           {calendarRooms.map((room: Room) => <option key={room.id} value={room.id}>{room.name}</option>)}
         </select></label>
@@ -78,10 +93,11 @@ export function CalendarPage() {
           ? <div className="empty-state">No confirmed bookings for this room in the selected time range.</div>
           : <>
             <div className="calendar-room-controls">
+              <div className="calendar-room-meta" aria-live="polite">Showing rooms {startIndex + 1}–{Math.min(startIndex + pageSize, groupedRooms.length)} of {groupedRooms.length}</div>
               <button className="secondary" type="button" onClick={() => setCollapsedRoomIds(new Set(groupedBookings.keys()))}>Collapse all</button>
               <button className="secondary" type="button" onClick={() => setCollapsedRoomIds(new Set())}>Expand all</button>
             </div>
-            <div className="calendar-room-list">{Array.from(groupedBookings.entries()).map(([id, bookings]) => {
+            <div className="calendar-room-list">{visibleRoomGroups.map(([id, bookings]) => {
             const room = bookings[0].room;
             const isCollapsed = collapsedRoomIds.has(id);
             return <section className="calendar-room" key={id}>
@@ -99,6 +115,9 @@ export function CalendarPage() {
               </article>)}</div>}
             </section>;
           })}</div>
+            <Pagination page={currentPage} pageCount={pageCount} pageSize={pageSize}
+              pageSizes={ROOM_PAGE_SIZES} ariaLabel="Calendar room pages"
+              onPageChange={setPage} onPageSizeChange={size => { setPageSize(size); setPage(1); }} />
           </>}
   </>;
 }

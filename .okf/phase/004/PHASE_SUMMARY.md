@@ -4,9 +4,9 @@ title: Final Integration and Delivery
 status: in_progress
 created_at: 2026-10-26
 updated_at: 2026-10-29
-current_task: 004_008
-task_count: 8
-done_count: 6
+current_task: 004_011
+task_count: 11
+done_count: 9
 depends_on: [001, 002, 003]
 ---
 
@@ -34,9 +34,12 @@ depends_on: [001, 002, 003]
 | 004_003 | Seed a fuller demo dataset | complete | Flyway V2 applied successfully; database contains 10 rooms and 70 bookings |
 | 004_004 | Document setup-only agent runbook | complete | `PRODUCT_SETTINGS.md` documents pull/start, health checks, release steps, and setup-only boundaries |
 | 004_005 | Auto-load the calendar schedule | complete | Calendar defaults to a seven-day window and fetches on entry; frontend production build passed |
-| 004_006 | Filter and paginate booking lists | complete | Search, status filter and 10/20/50 page sizes implemented; frontend production build passed |
+| 004_006 | Filter and paginate booking lists | complete | Search, status filter and shared 10/20/40 item pagination, defaulting to 10; frontend production build passed |
 | 004_007 | Hide inactive-room bookings from employee views | complete | My bookings and calendar/filter hide inactive rooms; frontend production build passed |
 | 004_008 | Collapse and expand calendar room schedules | complete | Per-room and all-room controls added; frontend production build passed |
+| 004_009 | Paginate room cards | complete | Room cards use shared pagination controls with 10/20/40 item page sizes, defaulting to 10; frontend production build passed |
+| 004_010 | Paginate calendar rooms | complete | Calendar groups use shared pagination controls with 5/10/15 item page sizes; frontend production build passed |
+| 004_011 | Remove calendar success toast | complete | Successful calendar loads no longer show a toast; frontend production build passed |
 
 ## Decisions and durable contracts
 
@@ -143,3 +146,25 @@ depends_on: [001, 002, 003]
   all actions to the calendar. Booking counts stay visible in collapsed room
   headers. `npm run build` passed (1,604 modules); the running Compose UI needs
   a newly published frontend image to receive this change.
+- Added client-side pagination on the rooms and availability results page, with
+  selectable 10/20/40 item page sizes (default 10), a result range, and previous/next controls.
+  The page-size dropdown sits to the left of the navigation controls below the
+  cards. `npm run build` passed (1,604 modules); the Compose UI needs a newly
+  published frontend image to receive this change.
+- Added calendar pagination by room group, defaulting to five items per page
+  with options for 10 or 15. Each room's bookings remain together, and the
+  collapse/expand controls remain available. The rooms and calendar pages now
+  share the same pagination component, with generic “items” option labels, the
+  page-size selector to the left of navigation, direct page-number buttons,
+  and no visible helper label. `npm run build` passed (1,605
+  modules); Compose needs a newly published frontend image for the update.
+- Applied the shared pagination component to the personal and company booking
+  lists as well. Their page-size dropdown now uses 10/20/40 generic item options,
+  defaults to 10, and appears below the results aligned with room and calendar
+  pagination. Numbered
+  buttons are available to jump between pages; long page ranges collapse with
+  ellipses. Frontend build passed (1,605 modules); Compose requires a newly
+  published frontend image to show the change.
+- Removed the success toast after calendar searches while preserving request
+  and validation error notifications. `npm run build` passed (1,605 modules);
+  Compose requires a newly published frontend image to show the change.

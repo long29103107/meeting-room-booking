@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { CalendarDays, XCircle } from 'lucide-react';
+import { Pagination } from '../common/Pagination';
 import { Booking, BOOKING_STATUS } from '../../types/domain';
 import { displayDateTime } from '../../utils/dateTime';
 
-const PAGE_SIZES = [10, 20, 50];
+const PAGE_SIZES = [10, 20, 40];
 
 type BookingListProps = {
   items: Booking[];
@@ -63,11 +64,6 @@ function BookingListContent({ items, onCancel, busy, admin, showOwner }: Omit<Bo
           <option value={BOOKING_STATUS.CANCELLED}>Cancelled</option>
         </select>
       </label>
-      <label>Per page
-        <select value={pageSize} onChange={event => { setPageSize(Number(event.target.value)); setPage(1); }}>
-          {PAGE_SIZES.map(size => <option key={size} value={size}>{size} bookings</option>)}
-        </select>
-      </label>
     </div>
 
     {filteredItems.length === 0
@@ -88,11 +84,9 @@ function BookingListContent({ items, onCancel, busy, admin, showOwner }: Omit<Bo
           <span className={'status ' + booking.status.toLowerCase()}>{booking.status}</span>
           {booking.status === BOOKING_STATUS.CONFIRMED && <button className="secondary danger" disabled={busy} onClick={() => onCancel(booking)}><XCircle size={16} /> {admin ? 'Cancel booking' : 'Cancel'}</button>}
         </article>)}</div>
-        {pageCount > 1 && <nav className="booking-pagination" aria-label="Booking pages">
-          <button className="secondary" disabled={currentPage === 1} onClick={() => setPage(currentPage - 1)}>Previous</button>
-          <span aria-live="polite">Page {currentPage} of {pageCount}</span>
-          <button className="secondary" disabled={currentPage === pageCount} onClick={() => setPage(currentPage + 1)}>Next</button>
-        </nav>}
+        <Pagination page={currentPage} pageCount={pageCount} pageSize={pageSize}
+          pageSizes={PAGE_SIZES} ariaLabel="Booking pages"
+          onPageChange={setPage} onPageSizeChange={size => { setPageSize(size); setPage(1); }} />
       </>}
   </>;
 }

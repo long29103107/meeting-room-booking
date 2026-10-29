@@ -167,7 +167,6 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       );
       setCalendarBookings(result);
       setCalendarSearched(true);
-      notify(result.length + ' confirmed booking(s) found.');
     } catch (error) { notify(error instanceof Error ? error.message : 'Request failed', 'error'); }
     finally { setBusy(false); }
   }, [auth, notify]);

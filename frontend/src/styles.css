@@ -40,7 +40,10 @@ select { height: 46px; border: 1px solid #dce4ee; border-radius: 9px; padding: 0
 .calendar-room-heading { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 19px 24px; background: #f6f9fc; border-bottom: 1px solid #e9eef4; }
 .calendar-room-heading h2 { margin: 0 0 5px; font-size: 17px; }
 .calendar-room-heading p, .calendar-room-heading span { margin: 0; color: #748398; font-size: 12px; }
-.calendar-room-controls { display: flex; justify-content: flex-end; gap: 8px; margin: -16px 0 14px; }
+.calendar-room-controls { display: flex; justify-content: flex-end; align-items: end; flex-wrap: wrap; gap: 8px; margin: -16px 0 14px; }
+.calendar-room-meta { align-self: center; margin-right: auto; color: #748398; font-size: 12px; }
+.calendar-room-controls label { gap: 5px; font-size: 11px; }
+.calendar-room-controls select { height: 38px; border: 1px solid #dce4ee; border-radius: 9px; padding: 0 10px; color: #2a3c52; background: white; }
 .calendar-room-toggle { display: inline-flex; align-items: center; gap: 10px; padding: 0; color: inherit; text-align: left; background: transparent; }
 .calendar-room-toggle > svg { flex: 0 0 auto; color: #2875bb; }
 .calendar-room-toggle span { display: flex; flex-direction: column; gap: 5px; }
@@ -67,20 +70,30 @@ select { height: 46px; border: 1px solid #dce4ee; border-radius: 9px; padding: 0
 .sidebar a.nav { text-decoration: none; }
 .content { margin: 0 auto; padding-top: 24px; }
 
-.booking-toolbar { display: grid; grid-template-columns: minmax(220px, 1fr) repeat(2, minmax(150px, 220px)); align-items: end; gap: 14px; margin-bottom: 14px; }
+.booking-toolbar { display: grid; grid-template-columns: minmax(220px, 1fr) minmax(150px, 220px); align-items: end; gap: 14px; margin-bottom: 14px; }
 .booking-toolbar label { gap: 8px; }
 .booking-toolbar input, .booking-toolbar select { height: 44px; }
 .booking-list-meta { margin: 0 2px 10px; color: #748398; font-size: 12px; }
 .booking-pagination { display: flex; justify-content: center; align-items: center; gap: 14px; margin-top: 18px; color: #667991; font-size: 13px; }
 .booking-pagination button { min-width: 96px; }
 .booking-pagination button:disabled { cursor: default; opacity: .45; }
+.pagination-page-numbers { display: inline-flex; align-items: center; gap: 5px; }
+.booking-pagination .pagination-page { min-width: 38px; padding: 10px; }
+.booking-pagination .pagination-page.active { color: white; background: #247ac6; }
+.pagination-ellipsis { padding: 0 3px; }
 .booking-filter-empty { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 6px; }
+.room-pagination-toolbar { display: flex; justify-content: space-between; align-items: end; gap: 16px; margin: 0 0 14px; }
+.room-list-meta { color: #748398; font-size: 12px; }
+.pagination-controls { display: flex; width: 100%; justify-content: flex-end; align-items: end; flex-wrap: wrap; gap: 18px; margin-top: 18px; }
+.pagination-controls .booking-pagination { flex: 0 0 auto; justify-content: flex-end; margin-top: 0; }
+.pagination-controls select { width: min(160px, 40%); height: 40px; border: 1px solid #dce4ee; border-radius: 9px; padding: 0 12px; color: #2a3c52; background: white; }
 .text-button { padding: 4px 6px; background: transparent; color: #247ac6; font-weight: 700; }
 .text-button:hover { text-decoration: underline; }
 
 @media (max-width: 700px) {
   .booking-toolbar { grid-template-columns: 1fr 1fr; }
   .booking-toolbar label:first-child { grid-column: 1 / -1; }
+  .room-pagination-toolbar { align-items: center; }
 }
 
 @media (max-width: 850px) {
