@@ -3,7 +3,7 @@ phase: 001
 title: Core MVP
 status: complete
 created_at: 2026-10-26
-updated_at: 2026-10-26
+updated_at: 2026-10-29
 current_task: 001_003
 task_count: 3
 done_count: 3
@@ -87,6 +87,8 @@ phases 1–3.
 - Frontend supports employee search/booking/personal bookings/cancellation and
   admin room management/company booking flows. It discovers admin capability
   through the protected API; backend authorization remains authoritative.
+- Workspace sidebar route links have no browser-default underline; the shared
+  page header starts near the top with responsive content spacing.
 - Backend uses `application.properties`; frontend uses `frontend/.env` with
   `VITE_API_BASE_URL`. Root `.env.example` configures Compose database settings.
 - Backend listens on port `5001`; Compose publishes `5001`, and both Vite and

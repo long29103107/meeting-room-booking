@@ -57,3 +57,13 @@ select { height: 46px; border: 1px solid #dce4ee; border-radius: 9px; padding: 0
 .confirm-dialog-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 10px; margin-top: 25px; }
 .confirm-dialog-actions button { min-height: 42px; }
 .confirm-dialog-actions button:disabled { cursor: wait; opacity: .6; }
+.sidebar a.nav { text-decoration: none; }
+.content { margin: 0 auto; padding-top: 24px; }
+
+@media (max-width: 850px) {
+  .content { padding-top: 22px; }
+}
+
+@media (max-width: 560px) {
+  .content { padding-top: 18px; }
+}

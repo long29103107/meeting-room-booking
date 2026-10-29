@@ -13,6 +13,7 @@ services:
     volumes:
       - dbdata:/var/lib/postgresql/data
   backend:
+    image: ghcr.io/long29103107/meeting-room-booking-backend:latest
     build: ./backend
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-meetingroom}
@@ -24,6 +25,7 @@ services:
     ports:
       - "5001:5001"
   frontend:
+    image: ghcr.io/long29103107/meeting-room-booking-frontend:latest
     build: ./frontend
     depends_on:
       - backend

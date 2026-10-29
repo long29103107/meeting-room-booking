@@ -1,0 +1,1 @@
+& "C:\Program Files\PostgreSQL\16\bin\pg_ctl.exe" start -D "C:\Program Files\PostgreSQL\16\data" -l "$env:TEMP\postgres-startup.log"

@@ -285,6 +285,13 @@ Acceptance:
 - PostgreSQL has a named volume for local persistence, and a healthcheck.
 - Backend waits for a healthy database / retries safely during startup.
 - No external dependencies (such as local PostgreSQL or Java installation) are required for Compose startup beyond Docker.
+- GitHub Actions builds the frontend and backend Dockerfiles on pull requests
+  and publishes their images to GHCR on pushes to `main` and version tags. The
+  Compose file keeps local build contexts and names the matching GHCR images;
+  PostgreSQL continues to use the official `postgres:16-alpine` image.
+- GHCR package visibility follows the linked repository by default. For
+  anonymous public pulls, the repository or both container packages must be
+  public in GitHub Packages settings.
 - App port `5001`, PostgreSQL internal port `5432`; publishing DB to host is optional.
 - Use environment variables for secrets, database settings and token config; commit `.env.example` only, **never** a real `.env`.
 - Flyway migrations execute on app startup; JPA schema validation passes.

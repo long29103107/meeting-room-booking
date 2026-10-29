@@ -32,6 +32,26 @@ No manual database initialization required. Flyway creates tables, constraints a
 
 Optional: copy the root `.env.example` to `.env` to customize the PostgreSQL credentials used by Docker Compose.
 
+The Compose file defines three services: frontend, backend, and PostgreSQL.
+Frontend and backend use these GHCR image names while retaining their local
+Docker build contexts, so `docker compose up --build` builds from the checkout.
+
+```text
+ghcr.io/long29103107/meeting-room-booking-frontend:latest
+ghcr.io/long29103107/meeting-room-booking-backend:latest
+```
+
+The GitHub Actions workflow builds both images for pull requests without
+publishing. Pushes to `main` publish the `latest`, branch, and short SHA tags;
+pushes of `v*` tags publish the matching version and short SHA tags. To run the
+published images, pull them with `docker compose pull`, then start the stack
+with `docker compose up --no-build`.
+
+GHCR packages created by the workflow inherit the repository's visibility and
+permissions. For anonymous public pulls, make the repository public or set
+both packages to **Public** in their GitHub Packages settings after the first
+workflow run. Public GHCR container images can then be pulled without login.
+
 ### Demo accounts (local evaluation only)
 
 | Role | Username | Password |

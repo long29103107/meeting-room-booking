@@ -45,6 +45,43 @@ In progress
 - [ ] PostgreSQL overlap and concurrent-write integration tests execute and pass.
 - [ ] README and Product Vision verification status reflect the actual results.
 
+## Task 004_002 — Publish frontend and backend images to GHCR
+
+### Vision alignment and outcome
+
+- Goal: Keep the complete three-service Compose stack easy to start while
+  publishing versioned frontend and backend images to GitHub Container Registry.
+- User outcome: A contributor can push to `main` or push a `v*` tag and get
+  GHCR images for the frontend and backend; PostgreSQL remains the third
+  Compose service and uses the official PostgreSQL image.
+
+### Scope
+
+In:
+
+- Add a GitHub Actions workflow that builds both existing Dockerfiles, validates
+  builds for pull requests, and publishes images for pushes to `main` and
+  version tags.
+- Give the two application services GHCR image references while retaining
+  local build contexts for the documented Compose workflow.
+- Document image names, tags, public visibility, and Compose usage.
+
+Out:
+
+- Deploying/running the stack on a hosted environment, publishing PostgreSQL,
+  or running the workflow against GitHub from this local implementation task.
+
+### Acceptance criteria
+
+- [ ] Pull requests build both images without registry write access.
+- [ ] Pushes to `main` and `v*` tags publish frontend and backend images using
+  the repository `GITHUB_TOKEN` with `packages: write`.
+- [x] Compose defines frontend, backend, and PostgreSQL services; app image
+  names point to GHCR and local build contexts remain available.
+- [x] README and Product Vision explain image tags and public-pull visibility.
+- [x] Compose config and a YAML parse check pass; `actionlint` is unavailable in
+  this local environment.
+
 ## API and data impact
 
 - API changes: None planned.
