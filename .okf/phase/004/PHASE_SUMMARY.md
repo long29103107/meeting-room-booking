@@ -4,9 +4,9 @@ title: Final Integration and Delivery
 status: in_progress
 created_at: 2026-10-26
 updated_at: 2026-10-29
-current_task: 004_002
-task_count: 2
-done_count: 0
+current_task: 004_004
+task_count: 4
+done_count: 1
 depends_on: [001, 002, 003]
 ---
 
@@ -31,6 +31,8 @@ depends_on: [001, 002, 003]
 | --- | --- | --- | --- |
 | 004_001 | Validate final Compose and PostgreSQL integration | in_progress | Compose stack and service health verified; employee/admin walkthrough remains |
 | 004_002 | Publish frontend/backend images to GHCR | in_progress | User reports CI released images; public pull access was not rechecked in this task |
+| 004_003 | Seed a fuller demo dataset | in_progress | V2 adds six rooms and up to 70 conflict-free future bookings; runtime migration awaits a newly published backend image |
+| 004_004 | Document setup-only agent runbook | complete | `PRODUCT_SETTINGS.md` documents pull/start, health checks, release steps, and setup-only boundaries |
 
 ## Decisions and durable contracts
 
@@ -107,3 +109,12 @@ depends_on: [001, 002, 003]
   now uses `docker compose up -d`. `docker compose config -q` passed; rendered
   service images are PostgreSQL 16 and the two GHCR `latest` images, with no
   build configuration.
+- Added `V2__seed_demo_schedule.sql`: six rooms expand the initial set to ten,
+  then up to 70 future non-overlapping bookings are distributed across seven
+  days and owned by the two demo accounts. Existing confirmed slots are skipped.
+  The migration runs once on the next backend image startup for each database.
+  Runtime application of V2 is pending that image release; no automated tests
+  were run for this change.
+- Added `PRODUCT_SETTINGS.md` as the setup-only runbook and linked it from
+  `AGENTS.md`. It covers GHCR image startup, health checks, preserving the
+  database volume, release gates, and the coding-test completion checklist.

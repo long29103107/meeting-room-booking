@@ -28,7 +28,7 @@ docker compose up -d
 - OpenAPI JSON: http://localhost:5001/v3/api-docs
 - Health: http://localhost:5001/actuator/health
 
-No manual database initialization required. Flyway creates tables, constraints and initial demo rooms. If port 5000 or 5001 is busy, change the host-side mapping in `docker-compose.yaml`.
+No manual database initialization required. Flyway creates tables and constraints, seeds 10 demo rooms, and adds up to 70 upcoming demo bookings across one week (70 on a fresh database). It skips time slots that conflict with existing confirmed bookings and runs once per database. If port 5000 or 5001 is busy, change the host-side mapping in `docker-compose.yaml`.
 
 Optional: copy the root `.env.example` to `.env` to customize the PostgreSQL credentials used by Docker Compose.
 
@@ -107,11 +107,12 @@ account for room browsing and booking, and the admin account for room mutations
 or the company booking list. The docs page is public; each API still enforces
 its server-side authentication and role rules.
 
-Flyway migration `V1__init.sql` creates the `rooms` and `bookings` schema and
-seeds four rooms (`Orchid`, `Lotus`, `Jasmine`, `Bamboo`). Demo identities are
-in-memory Spring Security users rather than rows in a users table. JPA validates
-the migrated schema at startup (`ddl-auto=validate`), so a schema mismatch stops
-the backend before the API becomes available.
+Flyway migrations create the `rooms` and `bookings` schema, seed 10 rooms, and
+create up to 70 upcoming demo bookings owned by the employee and admin demo
+accounts (70 in a fresh database).
+Demo identities are in-memory Spring Security users rather than rows in a users
+table. JPA validates the migrated schema at startup (`ddl-auto=validate`), so a
+schema mismatch stops the backend before the API becomes available.
 
 | Method | URL | Role | Function |
 | --- | --- | --- | --- |

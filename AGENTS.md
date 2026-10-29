@@ -15,6 +15,11 @@ record a focused correction instead of assuming either is current.
 3. Read the relevant standards under `.okf/standards/`.
 4. Inspect the affected source, migrations, and existing tests before proposing changes.
 
+For requests limited to product setup or starting the published stack, first
+follow the setup-only guidance in `PRODUCT_SETTINGS.md`. Do not interpret a
+setup-only request as authorization to change application code, reset database
+data, or push to GitHub.
+
 ## Project boundaries
 
 - Backend: Java 21, Spring Boot 3, REST/JSON, Spring Data JPA, PostgreSQL 16,
