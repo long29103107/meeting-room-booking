@@ -88,3 +88,11 @@ depends_on: [001, 002, 003]
   confirmed its jobs mapping; `actionlint` is not installed. No Docker image
   build, GitHub Actions run, or package visibility change was attempted from
   this local task.
+- Fixed the frontend Docker build failure shown in the supplied log: the
+  Windows-generated Bun lock omits Linux native Rollup/esbuild optional
+  packages. The builder now installs Alpine musl binaries at the versions
+  already resolved by the frozen lock. Docker image verification remains
+  pending because this session cannot connect to the Docker engine.
+- After the Dockerfile change, `npm run build` passed (TypeScript and Vite,
+  1,604 modules), and `docker compose config` still passed. `docker version`
+  remains blocked by access denied to the Docker Desktop named pipe.
