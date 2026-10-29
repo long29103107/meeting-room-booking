@@ -23,6 +23,7 @@ Out:
 - [x] The page size defaults to 5 items and offers 10 and 15.
 - [x] Each room and its bookings stay together on the same page.
 - [x] Numbered page buttons allow direct navigation between pages.
+- [x] The pagination controls are hidden when the result set fits on one page.
 - [x] The current page is clamped/reset when page size or calendar filters change.
 - [x] Room collapse/expand and bulk controls remain available.
 - [x] The page-size selector and navigation use the shared pagination component also used by the rooms page.

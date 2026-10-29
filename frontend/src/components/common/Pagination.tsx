@@ -26,12 +26,14 @@ export function Pagination({
   onPageChange,
   onPageSizeChange,
 }: PaginationProps) {
+  if (pageCount <= 1) return null;
+
   return <div className="pagination-controls">
     <select aria-label="Items per page" value={pageSize}
       onChange={event => onPageSizeChange(Number(event.target.value))}>
       {pageSizes.map(size => <option key={size} value={size}>{size} items</option>)}
     </select>
-    {pageCount > 1 && <nav className="booking-pagination" aria-label={ariaLabel}>
+    <nav className="booking-pagination" aria-label={ariaLabel}>
       <button className="secondary" disabled={page === 1} onClick={() => onPageChange(page - 1)}>Previous</button>
       <div className="pagination-page-numbers" aria-label="Page numbers">
         {getVisiblePages(page, pageCount).map(pageNumber => typeof pageNumber === 'number'
@@ -41,6 +43,6 @@ export function Pagination({
           : <span key={pageNumber} className="pagination-ellipsis" aria-hidden="true">…</span>)}
       </div>
       <button className="secondary" disabled={page === pageCount} onClick={() => onPageChange(page + 1)}>Next</button>
-    </nav>}
+    </nav>
   </div>;
 }

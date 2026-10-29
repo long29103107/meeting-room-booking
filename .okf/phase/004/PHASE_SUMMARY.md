@@ -156,14 +156,14 @@ depends_on: [001, 002, 003]
   collapse/expand controls remain available. The rooms and calendar pages now
   share the same pagination component, with generic “items” option labels, the
   page-size selector to the left of navigation, direct page-number buttons,
-  and no visible helper label. `npm run build` passed (1,605
+  no visible helper label, and controls hidden for one-page results. `npm run build` passed (1,605
   modules); Compose needs a newly published frontend image for the update.
 - Applied the shared pagination component to the personal and company booking
   lists as well. Their page-size dropdown now uses 10/20/40 generic item options,
   defaults to 10, and appears below the results aligned with room and calendar
   pagination. Numbered
   buttons are available to jump between pages; long page ranges collapse with
-  ellipses. Frontend build passed (1,605 modules); Compose requires a newly
+  ellipses. Pagination controls stay hidden for one-page results. Frontend build passed (1,605 modules); Compose requires a newly
   published frontend image to show the change.
 - Removed the success toast after calendar searches while preserving request
   and validation error notifications. `npm run build` passed (1,605 modules);

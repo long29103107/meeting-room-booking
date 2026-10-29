@@ -25,6 +25,7 @@ Out:
 - [x] Status can be filtered to confirmed, cancelled, or all.
 - [x] Pagination resets when filters/page size change and clamps after list updates.
 - [x] Numbered page buttons allow direct navigation between pages.
+- [x] The pagination controls are hidden when the filtered result set fits on one page.
 - [x] The shared page-size selector and previous/next controls appear below the list.
 - [x] Existing cancellation controls continue to work.
 

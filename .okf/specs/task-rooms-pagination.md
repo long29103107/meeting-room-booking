@@ -23,6 +23,7 @@ Out:
 - [x] Room cards are divided into pages with selectable 10/20/40 sizes, defaulting to 10.
 - [x] Previous and Next controls show the current page and total page count.
 - [x] Numbered page buttons let users jump directly between pages; long ranges use ellipses.
+- [x] The pagination controls are hidden when the result set fits on one page.
 - [x] The page-size selector sits to the left of the pagination controls below the room cards, with the group aligned right.
 - [x] Pagination controls are shared with the calendar page.
 - [x] Changing availability results or page size returns the user to a valid first page.
