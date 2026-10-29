@@ -4,9 +4,9 @@ title: Final Integration and Delivery
 status: in_progress
 created_at: 2026-10-26
 updated_at: 2026-10-29
-current_task: 004_006
-task_count: 6
-done_count: 4
+current_task: 004_007
+task_count: 7
+done_count: 5
 depends_on: [001, 002, 003]
 ---
 
@@ -35,6 +35,7 @@ depends_on: [001, 002, 003]
 | 004_004 | Document setup-only agent runbook | complete | `PRODUCT_SETTINGS.md` documents pull/start, health checks, release steps, and setup-only boundaries |
 | 004_005 | Auto-load the calendar schedule | complete | Calendar defaults to a seven-day window and fetches on entry; frontend production build passed |
 | 004_006 | Filter and paginate booking lists | complete | Search, status filter and 10/20/50 page sizes implemented; frontend production build passed |
+| 004_007 | Hide inactive-room bookings from employee views | complete | My bookings and calendar/filter hide inactive rooms; frontend production build passed |
 
 ## Decisions and durable contracts
 
@@ -132,3 +133,8 @@ depends_on: [001, 002, 003]
   rows per page) to the shared personal/company booking list. Search includes
   title and room, plus owner email on the company list. `npm run build` passed;
   republishing the frontend image is required for the Compose UI to receive it.
+- Updated employee-facing views so My bookings and Room calendar hide bookings
+  tied to inactive rooms; the calendar filter also excludes inactive rooms.
+  Booking records remain stored and visible in admin Company bookings.
+  `npm run build` passed; the change requires a newly published frontend image
+  before the registry-only Compose stack receives it.

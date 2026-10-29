@@ -21,10 +21,15 @@ export function CalendarPage() {
     void searchCalendar(defaultRange.from, defaultRange.to);
   }, [defaultRange, searchCalendar]);
 
+  const activeCalendarBookings = useMemo(
+    () => calendarBookings.filter(booking => booking.room.active),
+    [calendarBookings],
+  );
   const calendarRooms = useMemo(() => Array.from(new Map(
-    [...rooms, ...calendarBookings.map(booking => booking.room)].map(room => [room.id, room]),
-  ).values()).sort((a, b) => a.name.localeCompare(b.name)), [rooms, calendarBookings]);
-  const visibleBookings = calendarBookings
+    [...rooms.filter(room => room.active), ...activeCalendarBookings.map(booking => booking.room)]
+      .map(room => [room.id, room]),
+  ).values()).sort((a, b) => a.name.localeCompare(b.name)), [rooms, activeCalendarBookings]);
+  const visibleBookings = activeCalendarBookings
     .filter(booking => !roomId || String(booking.room.id) === roomId)
     .sort((a, b) => Date.parse(a.startTime) - Date.parse(b.startTime));
   const groupedBookings = visibleBookings.reduce<Map<number, typeof visibleBookings>>((groups, booking) => {
@@ -47,7 +52,7 @@ export function CalendarPage() {
         <label>To<input type="datetime-local" value={to} onChange={event => { setTo(event.target.value); clearCalendarSearch(); }} required /></label>
         <label>Room<select value={roomId} onChange={event => setRoomId(event.target.value)}>
           <option value="">All rooms</option>
-          {calendarRooms.map((room: Room) => <option key={room.id} value={room.id}>{room.name}{room.active ? '' : ' (inactive)'}</option>)}
+          {calendarRooms.map((room: Room) => <option key={room.id} value={room.id}>{room.name}</option>)}
         </select></label>
         <button className="primary" disabled={busy}><Search size={17} /> Show schedule</button>
       </form>
@@ -57,8 +62,8 @@ export function CalendarPage() {
       ? <div className="empty-state">Loading the room schedule…</div>
       : !calendarSearched
       ? <div className="empty-state">Choose a time range and show the schedule to view confirmed room bookings.</div>
-      : calendarBookings.length === 0
-        ? <div className="empty-state">No confirmed bookings in this time range.</div>
+      : activeCalendarBookings.length === 0
+        ? <div className="empty-state">No confirmed bookings for active rooms in this time range.</div>
         : visibleBookings.length === 0
           ? <div className="empty-state">No confirmed bookings for this room in the selected time range.</div>
           : <div className="calendar-room-list">{Array.from(groupedBookings.entries()).map(([id, bookings]) => {

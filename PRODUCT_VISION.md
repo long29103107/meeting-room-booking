@@ -28,6 +28,11 @@ Build a reliable, simple internal meeting-room reservation backend for a company
 
 A React + Vite + TypeScript UI is included as an optional demonstration of the backend. DKI only mandates REST APIs; all essential business rules must remain enforced on the server. A single Docker Compose command launches frontend, backend and PostgreSQL.
 
+The demo UI hides bookings for inactive rooms from **My bookings** and the
+shared **Room calendar**, and omits inactive rooms from the calendar filter.
+Deactivation still preserves booking records; administrators can inspect them
+in **Company bookings**.
+
 ## 2. Stack and bootstrapping
 
 | Area | Decision |

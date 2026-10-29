@@ -88,7 +88,7 @@ in `frontend/src/components/`, shared workspace state in
 ## Business rules (team design decisions)
 
 1. Only an authenticated user can access room/booking APIs.
-2. Only ADMIN can create, edit, deactivate rooms; soft-deactivation retains historical booking references.
+2. Only ADMIN can create, edit, deactivate rooms; soft-deactivation retains historical booking references. The UI hides inactive-room bookings from **My bookings** and **Room calendar**, while admins can review them under **Company bookings**.
 3. Rooms must be active to accept new reservations.
 4. Every booking must have `startTime < endTime` and begin in the future.
 5. Use ISO-8601 timestamps with offsets; PostgreSQL `TIMESTAMPTZ` persists instants.
