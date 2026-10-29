@@ -4,9 +4,9 @@ title: Final Integration and Delivery
 status: in_progress
 created_at: 2026-10-26
 updated_at: 2026-10-29
-current_task: 004_004
-task_count: 4
-done_count: 1
+current_task: 004_006
+task_count: 6
+done_count: 4
 depends_on: [001, 002, 003]
 ---
 
@@ -29,10 +29,12 @@ depends_on: [001, 002, 003]
 
 | Task | Outcome | Status | Verification |
 | --- | --- | --- | --- |
-| 004_001 | Validate final Compose and PostgreSQL integration | in_progress | Compose stack and service health verified; employee/admin walkthrough remains |
-| 004_002 | Publish frontend/backend images to GHCR | in_progress | User reports CI released images; public pull access was not rechecked in this task |
-| 004_003 | Seed a fuller demo dataset | in_progress | V2 adds six rooms and up to 70 conflict-free future bookings; runtime migration awaits a newly published backend image |
+| 004_001 | Validate final Compose and PostgreSQL integration | in_progress | Latest images started; migration and health verified; employee/admin walkthrough remains |
+| 004_002 | Publish frontend/backend images to GHCR | in_progress | Both GHCR images pulled successfully; anonymous public access and Actions run remain unverified |
+| 004_003 | Seed a fuller demo dataset | complete | Flyway V2 applied successfully; database contains 10 rooms and 70 bookings |
 | 004_004 | Document setup-only agent runbook | complete | `PRODUCT_SETTINGS.md` documents pull/start, health checks, release steps, and setup-only boundaries |
+| 004_005 | Auto-load the calendar schedule | complete | Calendar defaults to a seven-day window and fetches on entry; frontend production build passed |
+| 004_006 | Filter and paginate booking lists | complete | Search, status filter and 10/20/50 page sizes implemented; frontend production build passed |
 
 ## Decisions and durable contracts
 
@@ -54,8 +56,8 @@ depends_on: [001, 002, 003]
 
 ## Next step
 
-- Verify the published GHCR images can be pulled, then continue the
-  employee/admin smoke walkthrough against the Compose stack.
+- Verify anonymous GHCR access and complete the employee/admin smoke walkthrough
+  and PostgreSQL-backed automated checks against the Compose stack.
 
 ## Verification completed
 
@@ -113,8 +115,20 @@ depends_on: [001, 002, 003]
   then up to 70 future non-overlapping bookings are distributed across seven
   days and owned by the two demo accounts. Existing confirmed slots are skipped.
   The migration runs once on the next backend image startup for each database.
-  Runtime application of V2 is pending that image release; no automated tests
-  were run for this change.
+  No automated tests were run for this change.
 - Added `PRODUCT_SETTINGS.md` as the setup-only runbook and linked it from
   `AGENTS.md`. It covers GHCR image startup, health checks, preserving the
   database volume, release gates, and the coding-test completion checklist.
+- Retried Compose startup after Docker Desktop reported `starting`; once its
+  engine returned to `running`, `docker compose up -d` pulled all three images
+  and started the stack. Flyway applied V2 successfully, and a read-only query
+  confirmed 10 rooms and 70 bookings (35 per demo account). Backend health was
+  `UP`, and frontend returned HTTP 200.
+- Fixed the Calendar page's empty-on-entry behavior: it now automatically loads
+  the default seven-day schedule and shows a loading state while fetching.
+  `npm run build` from `frontend/` passed (1,604 modules). The published
+  frontend image must be refreshed before the running Compose UI receives it.
+- Added text search, status filter, and previous/next pagination (10, 20, or 50
+  rows per page) to the shared personal/company booking list. Search includes
+  title and room, plus owner email on the company list. `npm run build` passed;
+  republishing the frontend image is required for the Compose UI to receive it.

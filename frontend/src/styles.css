@@ -60,6 +60,22 @@ select { height: 46px; border: 1px solid #dce4ee; border-radius: 9px; padding: 0
 .sidebar a.nav { text-decoration: none; }
 .content { margin: 0 auto; padding-top: 24px; }
 
+.booking-toolbar { display: grid; grid-template-columns: minmax(220px, 1fr) repeat(2, minmax(150px, 220px)); align-items: end; gap: 14px; margin-bottom: 14px; }
+.booking-toolbar label { gap: 8px; }
+.booking-toolbar input, .booking-toolbar select { height: 44px; }
+.booking-list-meta { margin: 0 2px 10px; color: #748398; font-size: 12px; }
+.booking-pagination { display: flex; justify-content: center; align-items: center; gap: 14px; margin-top: 18px; color: #667991; font-size: 13px; }
+.booking-pagination button { min-width: 96px; }
+.booking-pagination button:disabled { cursor: default; opacity: .45; }
+.booking-filter-empty { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 6px; }
+.text-button { padding: 4px 6px; background: transparent; color: #247ac6; font-weight: 700; }
+.text-button:hover { text-decoration: underline; }
+
+@media (max-width: 700px) {
+  .booking-toolbar { grid-template-columns: 1fr 1fr; }
+  .booking-toolbar label:first-child { grid-column: 1 / -1; }
+}
+
 @media (max-width: 850px) {
   .content { padding-top: 22px; }
 }

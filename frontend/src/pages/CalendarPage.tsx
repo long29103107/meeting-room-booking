@@ -1,4 +1,4 @@
-import { FormEvent, useMemo, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { CalendarDays, Search } from 'lucide-react';
 import { useWorkspace } from '../contexts/WorkspaceContext';
 import { Room } from '../types/domain';
@@ -6,9 +6,20 @@ import { localDateTimeInput } from '../utils/dateTime';
 
 export function CalendarPage() {
   const { rooms, calendarBookings, calendarSearched, busy, searchCalendar, clearCalendarSearch } = useWorkspace();
-  const [from, setFrom] = useState(() => { const date = new Date(); date.setHours(0, 0, 0, 0); return localDateTimeInput(date); });
-  const [to, setTo] = useState(() => { const date = new Date(); date.setDate(date.getDate() + 1); date.setHours(0, 0, 0, 0); return localDateTimeInput(date); });
+  const [defaultRange] = useState(() => {
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(start);
+    end.setDate(end.getDate() + 7);
+    return { from: localDateTimeInput(start), to: localDateTimeInput(end) };
+  });
+  const [from, setFrom] = useState(defaultRange.from);
+  const [to, setTo] = useState(defaultRange.to);
   const [roomId, setRoomId] = useState('');
+
+  useEffect(() => {
+    void searchCalendar(defaultRange.from, defaultRange.to);
+  }, [defaultRange, searchCalendar]);
 
   const calendarRooms = useMemo(() => Array.from(new Map(
     [...rooms, ...calendarBookings.map(booking => booking.room)].map(room => [room.id, room]),
@@ -42,7 +53,9 @@ export function CalendarPage() {
       </form>
     </section>
 
-    {!calendarSearched
+    {busy && !calendarSearched
+      ? <div className="empty-state">Loading the room schedule…</div>
+      : !calendarSearched
       ? <div className="empty-state">Choose a time range and show the schedule to view confirmed room bookings.</div>
       : calendarBookings.length === 0
         ? <div className="empty-state">No confirmed bookings in this time range.</div>
