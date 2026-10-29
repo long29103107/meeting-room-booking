@@ -107,8 +107,8 @@ public class BookingService {
         }
 
         String normalizedQuery = query == null || query.isBlank()
-                ? null
-                : query.trim().toLowerCase(java.util.Locale.ROOT);
+                ? "%"
+                : "%" + query.trim().toLowerCase(java.util.Locale.ROOT) + "%";
         PageRequest pageable = PageRequest.of(page, size,
                 Sort.by(Sort.Order.desc("startTime"), Sort.Order.desc("id")));
         Page<Booking> result = bookings.searchPage(

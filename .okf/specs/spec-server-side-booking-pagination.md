@@ -77,5 +77,5 @@ Out:
 
 ## Done notes
 
-- Implementation: Added database-backed page endpoints for personal and company booking lists, including filters and totals. The frontend requests fresh data on page, size, search, status, and booking refresh changes. The existing array endpoints remain available.
+- Implementation: Added database-backed page endpoints for personal and company booking lists, including filters and totals. The frontend requests fresh data on page, size, search, status, and booking refresh changes. The existing array endpoints remain available. Changed optional search to a non-null LIKE pattern to avoid PostgreSQL binding a null LIKE parameter as `bytea`.
 - Checks run and results: `mvn -DskipTests package` passed and compiled the existing test sources; tests were skipped. `npm run build` passed (TypeScript and Vite; 1,605 modules). `git diff --check` passed. PostgreSQL query startup and API smoke checks remain unverified because Docker Engine access was denied.

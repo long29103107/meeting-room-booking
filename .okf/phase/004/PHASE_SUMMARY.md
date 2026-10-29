@@ -169,3 +169,7 @@ depends_on: [001, 002, 003]
 - Removed the success toast after calendar searches while preserving request
   and validation error notifications. `npm run build` passed (1,605 modules);
   Compose requires a newly published frontend image to show the change.
+- Fixed the paged booking search query to always bind a non-null string pattern;
+  this addresses PostgreSQL's `text ~~ bytea` error when the optional search is
+  blank. Maven package compilation passed with tests skipped. A live PostgreSQL
+  request remains unverified because Docker Engine access was denied.

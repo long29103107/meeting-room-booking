@@ -25,23 +25,23 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             + "where (:userEmail is null or b.userEmail = :userEmail) "
             + "and (:activeRoomsOnly = false or r.active = true) "
             + "and (:status is null or b.status = :status) "
-            + "and (:query is null or lower(b.title) like concat('%', :query, '%') "
-            + "or lower(r.name) like concat('%', :query, '%') "
-            + "or lower(r.location) like concat('%', :query, '%') "
-            + "or (:includeOwner = true and lower(b.userEmail) like concat('%', :query, '%'))) ",
+            + "and (lower(b.title) like :queryPattern "
+            + "or lower(r.name) like :queryPattern "
+            + "or lower(r.location) like :queryPattern "
+            + "or (:includeOwner = true and lower(b.userEmail) like :queryPattern)) ",
             countQuery = "select count(b) from Booking b join b.room r "
                     + "where (:userEmail is null or b.userEmail = :userEmail) "
                     + "and (:activeRoomsOnly = false or r.active = true) "
                     + "and (:status is null or b.status = :status) "
-                    + "and (:query is null or lower(b.title) like concat('%', :query, '%') "
-                    + "or lower(r.name) like concat('%', :query, '%') "
-                    + "or lower(r.location) like concat('%', :query, '%') "
-                    + "or (:includeOwner = true and lower(b.userEmail) like concat('%', :query, '%')))")
+                    + "and (lower(b.title) like :queryPattern "
+                    + "or lower(r.name) like :queryPattern "
+                    + "or lower(r.location) like :queryPattern "
+                    + "or (:includeOwner = true and lower(b.userEmail) like :queryPattern))")
     Page<Booking> searchPage(@Param("userEmail") String userEmail,
                              @Param("activeRoomsOnly") boolean activeRoomsOnly,
                              @Param("includeOwner") boolean includeOwner,
                              @Param("status") String status,
-                             @Param("query") String query,
+                             @Param("queryPattern") String queryPattern,
                              Pageable pageable);
 
     @Query("select b from Booking b where b.startTime < :end and b.endTime > :start "
